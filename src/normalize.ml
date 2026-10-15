@@ -11,38 +11,126 @@ let is_apostrophe cp =
   || cp = 0x2BE
 ;;
 
-let fold s =
-  let folded = Unicode_fold.fold s in
-  let buf = Buffer.create (String.length folded) in
+module Reading = struct
+  type t =
+    | Phonetic
+    | Visual
+  [@@deriving sexp_of, compare, equal]
+end
+
+type folded =
+  { text : string
+  ; visual_differs : bool
+  }
+
+let digit_lookalike = function
+  | '0' -> 'o'
+  | '1' -> 'l'
+  | '3' -> 'e'
+  | '5' -> 's'
+  | c -> c
+;;
+
+let is_word_char cp =
+  Unicode_fold.is_letter_or_digit cp || Unicode_fold.is_ignorable cp || is_apostrophe cp
+;;
+
+(* Splits Unicode-folded text into words: runs of letters and digits, where invisible
+   code points and apostrophes do not end a word. *)
+let words folded =
+  let out = ref [] in
+  let buf = Buffer.create 16 in
+  let flush () =
+    if Buffer.length buf > 0
+    then (
+      out := Buffer.contents buf :: !out;
+      Buffer.clear buf)
+  in
+  Utf8.iter folded ~f:(fun cp -> if is_word_char cp then Utf8.encode buf cp else flush ());
+  flush ();
+  List.rev !out
+;;
+
+(* A word looks disguised when it mixes Latin letters with Cyrillic, Greek or Armenian
+   ones, when every letter in it is a non-Latin look-alike of a Latin one, or when it
+   mixes letters and digits. Decided per word, so an honest Cyrillic word next to a
+   disguised one is still read by transliteration. *)
+let disguised_word word =
+  let ascii = ref false
+  and lookalike = ref false
+  and all_confusable = ref true
+  and digit = ref false
+  and letter = ref false in
+  Utf8.iter word ~f:(fun cp ->
+    if Unicode_fold.is_letter_or_digit cp
+    then (
+      let is_digit = cp >= Char.to_int '0' && cp <= Char.to_int '9' in
+      if is_digit then digit := true else letter := true;
+      if cp < 0x80 && not is_digit then ascii := true;
+      if Translit.is_lookalike_script cp
+      then (
+        lookalike := true;
+        if Option.is_none (Translit.confusable cp) then all_confusable := false)));
+  (!ascii && !lookalike) || (!lookalike && !all_confusable) || (!digit && !letter)
+;;
+
+(* Latin spelling of one word. Separators inside it (a letter-like symbol without a
+   table entry) become spaces. *)
+let latinise_word ~visual word =
+  let buf = Buffer.create (String.length word) in
   let space () =
     if Buffer.length buf > 0 && Char.( <> ) (Buffer.nth buf (Buffer.length buf - 1)) ' '
     then Buffer.add_char buf ' '
   in
   let prev = ref 0 in
-  Utf8.iter folded ~f:(fun cp ->
+  Utf8.iter word ~f:(fun cp ->
     (if cp < 0x80
      then (
        let c = Char.of_int_exn cp in
        if Char.is_alphanum c
-       then Buffer.add_char buf c
+       then Buffer.add_char buf (if visual then digit_lookalike c else c)
        else if is_apostrophe cp
        then ()
        else space ())
-     else if is_apostrophe cp
+     else if is_apostrophe cp || Unicode_fold.is_ignorable cp
      then ()
-     else if cp = 0x3C5 && !prev = 0x3BF
-     then (* ELOT 743: omicron upsilon is "ou", not "oy". *)
-       Buffer.add_char buf 'u'
      else (
-       match Translit.latin cp with
-       | Some l -> Buffer.add_string buf l
-       | None ->
-         (* Letters of scripts without a table (CJK, Hangul, ...) are kept as they are
-            so that a name still matches its own spelling; anything else separates. *)
-         if cp >= 0x2E80 then Utf8.encode buf cp else space ()));
+       match visual, Translit.confusable cp with
+       | true, Some l -> Buffer.add_string buf l
+       | _ ->
+         if cp = 0x3C5 && !prev = 0x3BF
+         then (* ELOT 743: omicron upsilon is "ou", not "oy". *)
+           Buffer.add_char buf 'u'
+         else (
+           match Translit.latin cp with
+           | Some l -> Buffer.add_string buf l
+           | None ->
+             (* A letter or digit we cannot Latinise is kept as it is, never dropped:
+                deleting it would let unlisted scripts hide inside a name. *)
+             if Unicode_fold.is_letter_or_digit cp then Utf8.encode buf cp else space ())));
     prev := cp);
-  String.rstrip ~drop:(Char.equal ' ') (Buffer.contents buf)
+  String.strip ~drop:(Char.equal ' ') (Buffer.contents buf)
 ;;
+
+let fold_reading ~(reading : Reading.t) s =
+  let ws = words (Unicode_fold.fold s) in
+  let visual_differs = ref false in
+  let parts =
+    List.map ws ~f:(fun w ->
+      let disguised = disguised_word w in
+      if disguised then visual_differs := true;
+      let visual =
+        match reading with
+        | Phonetic -> false
+        | Visual -> disguised
+      in
+      latinise_word ~visual w)
+    |> List.filter ~f:(Fn.non String.is_empty)
+  in
+  { text = String.concat parts ~sep:" "; visual_differs = !visual_differs }
+;;
+
+let fold s = (fold_reading ~reading:Phonetic s).text
 
 let honorifics =
   [ "mr"
@@ -169,8 +257,8 @@ let honorific_set = String.Set.of_list honorifics
 let entity_set = String.Set.of_list (legal_forms @ joining_words)
 let vessel_set = String.Set.of_list vessel_prefixes
 
-let tokens ?(party = Party_type.Unknown) s =
-  let all = String.split (fold s) ~on:' ' |> List.filter ~f:(Fn.non String.is_empty) in
+let tokens_of_folded ~(party : Party_type.t) folded =
+  let all = String.split folded ~on:' ' |> List.filter ~f:(Fn.non String.is_empty) in
   let all =
     (* "M/V" and "M/T" fold to two one-letter words. *)
     match party, all with
@@ -189,6 +277,8 @@ let tokens ?(party = Party_type.Unknown) s =
   | [] -> all
   | kept -> kept
 ;;
+
+let tokens ?(party = Party_type.Unknown) s = tokens_of_folded ~party (fold s)
 
 let is_vowel c =
   match c with
@@ -213,18 +303,19 @@ module Key = struct
   type t =
     { tokens : string array
     ; sorted : string
+    ; compact : string
     ; skeleton : string
     ; abjad : bool
+    ; reading : Reading.t
     }
   [@@deriving sexp_of, compare, equal]
 
   let is_empty t = Array.is_empty t.tokens
 end
 
-let key ?party s =
-  let tokens = tokens ?party s |> List.dedup_and_sort ~compare:String.compare in
-  let abjad = ref false in
-  Utf8.iter s ~f:(fun cp -> if Translit.is_abjad cp then abjad := true);
+let key_of_folded ~party ~reading ~abjad folded =
+  let words = tokens_of_folded ~party folded in
+  let tokens = List.dedup_and_sort words ~compare:String.compare in
   let skeleton =
     List.map tokens ~f:skeleton_of_token
     |> List.sort ~compare:String.compare
@@ -232,7 +323,35 @@ let key ?party s =
   in
   { Key.tokens = Array.of_list tokens
   ; sorted = String.concat tokens ~sep:" "
+  ; compact = String.concat words
   ; skeleton
-  ; abjad = !abjad
+  ; abjad
+  ; reading
   }
+;;
+
+let has_abjad s =
+  let abjad = ref false in
+  Utf8.iter s ~f:(fun cp -> if Translit.is_abjad cp then abjad := true);
+  !abjad
+;;
+
+let key ?(party = Party_type.Unknown) s =
+  key_of_folded
+    ~party
+    ~reading:Phonetic
+    ~abjad:(has_abjad s)
+    (fold_reading ~reading:Phonetic s).text
+;;
+
+let keys ?(party = Party_type.Unknown) s =
+  let abjad = has_abjad s in
+  let phonetic = fold_reading ~reading:Phonetic s in
+  let primary = key_of_folded ~party ~reading:Phonetic ~abjad phonetic.text in
+  if phonetic.visual_differs
+  then (
+    let visual = fold_reading ~reading:Visual s in
+    let second = key_of_folded ~party ~reading:Visual ~abjad visual.text in
+    if String.equal second.sorted primary.sorted then [ primary ] else [ primary; second ])
+  else [ primary ]
 ;;

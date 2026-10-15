@@ -49,12 +49,13 @@ let%expect_test "key sorts, dedups and builds the skeleton" =
   print_s [%sexp (Normalize.key ~party:Person "Muhammad Abdullah" : Normalize.Key.t)];
   [%expect
     {|
-    ((tokens (john smith)) (sorted "john smith") (skeleton "jhn smth")
-     (abjad false))
-    ((tokens (allh bd mhmd)) (sorted "allh bd mhmd") (skeleton "bd lh mhmd")
-     (abjad true))
+    ((tokens (john smith)) (sorted "john smith") (compact smithjohnjohn)
+     (skeleton "jhn smth") (abjad false) (reading Phonetic))
+    ((tokens (allh bd mhmd)) (sorted "allh bd mhmd") (compact mhmdbdallh)
+     (skeleton "bd lh mhmd") (abjad true) (reading Phonetic))
     ((tokens (abdullah muhammad)) (sorted "abdullah muhammad")
-     (skeleton "bdlh mhmd") (abjad false))
+     (compact muhammadabdullah) (skeleton "bdlh mhmd") (abjad false)
+     (reading Phonetic))
     |}]
 ;;
 
