@@ -257,8 +257,21 @@ let honorific_set = String.Set.of_list honorifics
 let entity_set = String.Set.of_list (legal_forms @ joining_words)
 let vessel_set = String.Set.of_list vessel_prefixes
 
+(* Roman numerals from 2 to 20 read as numbers ("Ocean Pearl VII" is "ocean pearl 7").
+   Single letters are left alone: "I" or "V" is more often an initial. *)
+let roman =
+  String.Map.of_alist_exn
+    [ "ii", "2"; "iii", "3"; "iv", "4"; "vi", "6"; "vii", "7"; "viii", "8"; "ix", "9"
+    ; "xi", "11"; "xii", "12"; "xiii", "13"; "xiv", "14"; "xv", "15"; "xvi", "16"
+    ; "xvii", "17"; "xviii", "18"; "xix", "19"; "xx", "20" ]
+;;
+
 let tokens_of_folded ~(party : Party_type.t) folded =
-  let all = String.split folded ~on:' ' |> List.filter ~f:(Fn.non String.is_empty) in
+  let all =
+    String.split folded ~on:' '
+    |> List.filter ~f:(Fn.non String.is_empty)
+    |> List.map ~f:(fun w -> Option.value (Map.find roman w) ~default:w)
+  in
   let all =
     (* "M/V" and "M/T" fold to two one-letter words. *)
     match party, all with
