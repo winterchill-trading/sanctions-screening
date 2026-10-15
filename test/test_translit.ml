@@ -30,12 +30,8 @@ let%expect_test "public tables" =
 ;;
 
 let%expect_test "tables do not overlap and only produce lowercase ASCII" =
-  let all =
-    Translit.cyrillic @ Translit.greek @ Translit.arabic @ Translit.latin_extra
-  in
-  let dups =
-    List.find_all_dups all ~compare:(fun (a, _) (b, _) -> Int.compare a b)
-  in
+  let all = Translit.cyrillic @ Translit.greek @ Translit.arabic @ Translit.latin_extra in
+  let dups = List.find_all_dups all ~compare:(fun (a, _) (b, _) -> Int.compare a b) in
   print_s [%sexp (dups : (int * string) list)];
   List.iter all ~f:(fun (_, l) ->
     assert (String.for_all l ~f:(fun c -> Char.is_lowercase c || Char.is_digit c)));

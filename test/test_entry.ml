@@ -3,13 +3,22 @@ open Sanctions_screening
 
 let%expect_test "date of birth parsing" =
   List.iter
-    [ "1960-03-12"; "1960-03"; "1960"; "1959..1961"; "circa 1960"; "1960-13"; "60"; "1962..1961" ]
+    [ "1960-03-12"
+    ; "1960-03"
+    ; "1960"
+    ; "1959..1961"
+    ; "circa 1960"
+    ; "1960-13"
+    ; "60"
+    ; "1962..1961"
+    ]
     ~f:(fun s ->
       print_s
         [%sexp
           (s : string)
           , (Dob.of_string s |> Or_error.map ~f:Dob.to_string : string Or_error.t)]);
-  [%expect {|
+  [%expect
+    {|
     (1960-03-12 (Ok 1960-03-12))
     (1960-03 (Ok 1960-03))
     (1960 (Ok 1960))
@@ -38,7 +47,8 @@ let%expect_test "date of birth agreement" =
   show "1960-03-12" [ "1950"; "1960-03-12" ];
   show "1960" [ "1970" ];
   show "1960" [];
-  [%expect {|
+  [%expect
+    {|
     (1960-03-12 (1960-03-12) (Exact))
     (1960-03-12 (1960-03) (Same_month))
     (1960-03-12 (1960-07-01) (Same_year))
@@ -85,7 +95,8 @@ let%expect_test "entry normalises its lists" =
     [%sexp
       (Entry.create ~list:(Other "test") ~id:"8" ~version:"v1" ~party:Person ~names:[] ()
        : Entry.t Or_error.t)];
-  [%expect {|
+  [%expect
+    {|
     (Ok
      ((list (Other test)) (id 7) (version v1) (party Person)
       (names
@@ -120,7 +131,8 @@ let%expect_test "snapshot diff" =
     [%sexp
       (Snapshot.create ~list:(Other "test") ~version:"v" [ entry "1"; entry "1" ]
        : Snapshot.t Or_error.t)];
-  [%expect {|
+  [%expect
+    {|
     ((added (4)) (removed (3)) (changed (2)))
     (Error ("duplicate entry id" (id 1)))
     |}]
@@ -132,7 +144,8 @@ let%expect_test "stable digests" =
   print_endline [%bin_digest: Dob.Stable.V1.t];
   print_endline [%bin_digest: Party_type.Stable.V1.t];
   print_endline [%bin_digest: List_id.Stable.V1.t];
-  [%expect {|
+  [%expect
+    {|
     432092396d044828e17e04b5a6f03e03
     88354b7c927a9fb5dd7977395f9e5ca8
     61e3178b812c55da134c23f84bf692c4

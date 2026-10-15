@@ -23,7 +23,8 @@ let%expect_test "PostgreSQL store gives the memory store's transcript" =
   let%bind () = Memory.run (Store_memory.create ()) in
   let memory = [%expect.output] in
   print_s [%sexp (migrations : int list)];
-  print_endline (if String.equal pg memory then "same transcript" else pg ^ "---\n" ^ memory);
+  print_endline
+    (if String.equal pg memory then "same transcript" else pg ^ "---\n" ^ memory);
   let%bind () = Sanctions_screening_pg.Store_pg.close store in
   [%expect {|
     (1)

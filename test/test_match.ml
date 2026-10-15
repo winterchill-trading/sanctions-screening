@@ -15,7 +15,8 @@ let%expect_test "Jaro-Winkler reference values" =
     ; "a", ""
     ]
     ~f:(fun (a, b) -> printf "%-10s %-10s %4d\n" a b (Match.jaro_winkler s a b));
-  [%expect {|
+  [%expect
+    {|
     martha     marhta      961
     dwayne     duane       840
     dixon      dicksonx    814
@@ -43,7 +44,8 @@ let%expect_test "Damerau-Levenshtein (optimal string alignment)" =
         b
         (Match.damerau_levenshtein s a b)
         (Match.edit_similarity s a b));
-  [%expect {|
+  [%expect
+    {|
     ca         ac         1  500
     kitten     sitting    3  571
     ivanov     ivnaov     1  833
@@ -57,7 +59,8 @@ let%expect_test "Soundex" =
   List.iter
     [ "robert"; "rupert"; "rubin"; "ashcraft"; "tymczak"; "pfister"; "honeyman"; "1234" ]
     ~f:(fun w -> printf "%-9s %s\n" w (Match.soundex_to_string (Match.soundex w)));
-  [%expect {|
+  [%expect
+    {|
     robert    R163
     rupert    R163
     rubin     R150
@@ -83,7 +86,8 @@ let%expect_test "explained name scores" =
   show "Muhammad Abdullah" "محمد عبد الله";
   show "Northwind Trading Ltd" "Northwind Trading";
   show "Robert Brown" "Rupert Green";
-  [%expect {|
+  [%expect
+    {|
     John Smith | SMITH, John
     ((score 1000) (best edit)
      (components

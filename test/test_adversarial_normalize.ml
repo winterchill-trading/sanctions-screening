@@ -16,7 +16,8 @@ let%expect_test "disguised spellings normalise to the listed name" =
       List.map keys ~f:(fun (k : Normalize.Key.t) -> k.sorted) |> String.concat ~sep:" | "
     in
     printf "%-30s %-5b %s\n" label agrees shown);
-  [%expect {|
+  [%expect
+    {|
     plain                          true  oleg paramonov
     Cyrillic homoglyphs            true  oleg paramonov
     Cyrillic er for p              true  oleg raramonov | oleg paramonov

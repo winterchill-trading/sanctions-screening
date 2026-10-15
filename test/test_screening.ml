@@ -6,7 +6,8 @@ let show (r : Screening.Result.t) = print_endline (Decision.to_string_hum r.deci
 
 let%expect_test "onboarding: exact name with matching date of birth" =
   show (screen (person ~dob:"1961-03-12" ~nationalities:[ "RU" ] "Oleg Paramonov"));
-  [%expect {|
+  [%expect
+    {|
     potential match
       eu-consolidated:7001 1000 High tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Exact nationality=RU
       ofac-sdn:9001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Exact nationality=RU
@@ -16,7 +17,8 @@ let%expect_test "onboarding: exact name with matching date of birth" =
 
 let%expect_test "date of birth mismatch lowers priority but keeps the hit" =
   show (screen (person ~dob:"1990-01-01" "Oleg Paramonov"));
-  [%expect {|
+  [%expect
+    {|
     potential match
       eu-consolidated:7001 880 Medium tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Mismatch
       ofac-sdn:9001 880 Medium tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Mismatch
@@ -30,7 +32,8 @@ let%expect_test "transliteration and script variants" =
   show (screen (person "يوسف حداد الكلباني"));
   show (screen (person "Andreas Papathanasoglu"));
   show (screen (person "Dmitry Korzhikov"));
-  [%expect {|
+  [%expect
+    {|
     potential match
       eu-consolidated:7001 1000 High tokens 'Oleg Ivanovich Paramonov' ~ 'Олег Парамонов'
       ofac-sdn:9001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Олег Парамонов'
@@ -59,7 +62,8 @@ let%expect_test "clear names" =
 
 let%expect_test "entities and vessels as payment counterparties" =
   let cp name =
-    Subject.counterparty ~id:"payee-1" ~name () |> ok_exn
+    Subject.counterparty ~id:"payee-1" ~name ()
+    |> ok_exn
     |> screen
          ~policy:Policy.payments
          ~context:(Counterparty { role = Beneficiary; reference = "E2E-1" })
@@ -69,7 +73,8 @@ let%expect_test "entities and vessels as payment counterparties" =
   show (cp "OOO Severnyi Veter");
   show (cp "Silver Heron Shipping");
   show (cp "Acme Widgets Ltd");
-  [%expect {|
+  [%expect
+    {|
     potential match
       ofac-sdn:9008 1000 High edit 'NORTHWIND MARITIME HOLDINGS LTD.' ~ 'Northwind Maritime Holdings Limited'
       uk-ofsi:15003 1000 High edit 'NORTHWIND MARITIME HOLDINGS LIMITED' ~ 'Northwind Maritime Holdings Limited'
@@ -87,7 +92,8 @@ let%expect_test "type mismatch is a reason, not a removal" =
   show
     (screen
        (Subject.create ~id:"c" ~party:Entity ~names:[ "Svetlana Zhuravina" ] () |> ok_exn));
-  [%expect {|
+  [%expect
+    {|
     potential match
       eu-consolidated:7002 850 Medium tokens 'Svetlana Petrovna Zhuravina' ~ 'Svetlana Zhuravina' type=entity/person
       ofac-sdn:9007 850 Medium tokens 'Svetlana Petrovna ZHURAVINA' ~ 'Svetlana Zhuravina' type=entity/person
@@ -114,10 +120,14 @@ let%expect_test "results are deterministic and carry their inputs" =
   let a = screen s
   and b = screen s in
   print_s [%sexp (Screening.Result.equal a b : bool), (a.id : string)];
-  print_s [%sexp (List.map a.lists ~f:(fun v -> List_id.to_string v.list, v.version) : (string * string) list)];
+  print_s
+    [%sexp
+      (List.map a.lists ~f:(fun v -> List_id.to_string v.list, v.version)
+       : (string * string) list)];
   let kyc = List.take (List.map (Decision.hits a.decision) ~f:Hit.to_kyc) 2 in
   print_s [%sexp (kyc : Kyc_core.Screening.Hit.t list)];
-  [%expect {|
+  [%expect
+    {|
     (true 18de680d47272eaa4e147ec691491501)
     ((internal-pep 2026-10-01) (eu-consolidated 2026-10-15) (ofac-sdn 2026-10-15)
      (ofac-sdn 2026-10-15) (uk-ofsi 2026-10-15))
@@ -142,7 +152,7 @@ let%expect_test "the index finds what a full scan finds" =
     names
     @ List.map names ~f:(fun n -> String.drop_suffix n 2)
     @ List.map names ~f:(fun n -> String.rev n)
-    @ List.map (Adversarial.variants) ~f:snd
+    @ List.map Adversarial.variants ~f:snd
   in
   let missed = ref 0
   and total = ref 0 in
@@ -152,7 +162,13 @@ let%expect_test "the index finds what a full scan finds" =
       let w = Policy.default.weights in
       let full = Index.scan index scratch ~weights:w ~threshold:850 q in
       let fast =
-        Index.search index scratch ~weights:w ~prefilter:Policy.default.prefilter ~threshold:850 q
+        Index.search
+          index
+          scratch
+          ~weights:w
+          ~prefilter:Policy.default.prefilter
+          ~threshold:850
+          q
       in
       total := !total + List.length full;
       List.iter full ~f:(fun (id, sc) ->

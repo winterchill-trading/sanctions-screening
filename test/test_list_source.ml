@@ -24,10 +24,15 @@ let show (s : Snapshot.t) =
 ;;
 
 let%expect_test "OFAC SDN CSV" =
-  Ofac_csv.parse ~version:"2026-10-15" ~sdn:(read "ofac/sdn.csv") ~alt:(read "ofac/alt.csv") ()
+  Ofac_csv.parse
+    ~version:"2026-10-15"
+    ~sdn:(read "ofac/sdn.csv")
+    ~alt:(read "ofac/alt.csv")
+    ()
   |> ok_exn
   |> show;
-  [%expect {|
+  [%expect
+    {|
     ((list Ofac_sdn) (version 2026-10-15) (published ()) (entries 18)
      (digest 7955f59098a1c078611678b23f814358))
     ofac-sdn:9001 person
@@ -121,9 +126,17 @@ let%expect_test "OFAC SDN CSV" =
 
 let%expect_test "OFAC remark dates" =
   List.iter
-    [ "12 Mar 1961"; "Sep 1971"; "1972"; "circa 1968"; "1959 to 1961"; "31 Feb 1960"; "soon" ]
+    [ "12 Mar 1961"
+    ; "Sep 1971"
+    ; "1972"
+    ; "circa 1968"
+    ; "1959 to 1961"
+    ; "31 Feb 1960"
+    ; "soon"
+    ]
     ~f:(fun s -> print_s [%sexp (s : string), (Ofac_csv.parse_dob s : Dob.t option)]);
-  [%expect {|
+  [%expect
+    {|
     ("12 Mar 1961" ((Day 1961-03-12)))
     ("Sep 1971" ((Month (year 1971) (month 9))))
     (1972 ((Year 1972)))
@@ -136,7 +149,8 @@ let%expect_test "OFAC remark dates" =
 
 let%expect_test "OFAC advanced XML" =
   Ofac_xml.parse (read "ofac-advanced/sdn_advanced.xml") |> ok_exn |> show;
-  [%expect {|
+  [%expect
+    {|
     ((list Ofac_sdn) (version 2026-10-15) (published ()) (entries 5)
      (digest 92782392cc383217993c32066539cbef))
     ofac-sdn:9101 person 2019-03-14
@@ -169,7 +183,8 @@ let%expect_test "OFAC advanced XML" =
 
 let%expect_test "EU consolidated XML" =
   Eu_xml.parse (read "eu/eu_consolidated.xml") |> ok_exn |> show;
-  [%expect {|
+  [%expect
+    {|
     ((list Eu_consolidated) (version 2026-10-15) (published ()) (entries 12)
      (digest 622e96ba5f4856b8a02b1e62919a1df3))
     eu-consolidated:7001 person 2022-02-23
@@ -243,7 +258,8 @@ let%expect_test "EU consolidated XML" =
 
 let%expect_test "UK OFSI CSV" =
   Uk_csv.parse (read "uk/ConList.csv") |> ok_exn |> show;
-  [%expect {|
+  [%expect
+    {|
     ((list Uk_ofsi) (version 2026-10-15) (published ()) (entries 12)
      (digest 361141ba8d3ea0f4f6f164718fcfa43b))
     uk-ofsi:15001 person 2022-03-15
@@ -309,7 +325,8 @@ let%expect_test "fixture round trip" =
   show s;
   let again = Fixture.parse (Fixture.to_string s) |> ok_exn in
   print_s [%sexp (List.equal Entry.equal s.entries again.entries : bool)];
-  [%expect {|
+  [%expect
+    {|
     ((list (Other internal-pep)) (version 2026-10-01) (published (2026-10-01))
      (entries 4) (digest 0e38bb2f80b33a33aa3d699365206c44))
     internal-pep:PEP-001 person
@@ -346,7 +363,8 @@ let%expect_test "load a directory" =
       s.version.version
       s.version.entries
       (String.prefix s.version.digest 8));
-  [%expect {|
+  [%expect
+    {|
     internal-pep 2026-10-01 4 0e38bb2f
     eu-consolidated 2026-10-15 12 622e96ba
     ofac-sdn 2026-10-15 18 7955f590
@@ -356,9 +374,11 @@ let%expect_test "load a directory" =
 ;;
 
 let%expect_test "malformed input fails with a reason" =
-  print_s [%sexp (Eu_xml.parse "<export><sanctionEntity></export>" : Snapshot.t Or_error.t)];
+  print_s
+    [%sexp (Eu_xml.parse "<export><sanctionEntity></export>" : Snapshot.t Or_error.t)];
   print_s [%sexp (Uk_csv.parse "" : Snapshot.t Or_error.t)];
-  [%expect {|
+  [%expect
+    {|
     (Error ("malformed XML" "</export> closes <sanctionEntity>"))
     (Error "empty UK list file")
     |}]

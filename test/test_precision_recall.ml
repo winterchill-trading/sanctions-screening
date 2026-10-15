@@ -2,8 +2,8 @@ open! Core
 open Sanctions_screening
 open Fixture_lists
 
-(* Precision and recall on test/labelled.tsv: spellings of fixture entries (positives)
-   and other names (negatives). The README quotes these numbers. *)
+(* Precision and recall on test/labelled.tsv: spellings of fixture entries (positives) and
+   other names (negatives). The README quotes these numbers. *)
 
 type row =
   { query : string
@@ -15,7 +15,8 @@ type row =
 let rows =
   lazy
     (In_channel.read_lines "labelled.tsv"
-     |> List.filter ~f:(fun l -> not (String.is_empty l || String.is_prefix l ~prefix:"#"))
+     |> List.filter ~f:(fun l ->
+       not (String.is_empty l || String.is_prefix l ~prefix:"#"))
      |> List.map ~f:(fun line ->
        match String.split line ~on:'\t' with
        | [ query; party; expected; note ] ->
@@ -65,7 +66,12 @@ let evaluate policy ~on_miss =
       if not (Set.is_empty keys)
       then (
         c.false_alerts <- c.false_alerts + 1;
-        on_miss (sprintf "false alert: %s (%s) -> %s" r.query r.note (String.concat ~sep:"," (Set.to_list keys)))))
+        on_miss
+          (sprintf
+             "false alert: %s (%s) -> %s"
+             r.query
+             r.note
+             (String.concat ~sep:"," (Set.to_list keys)))))
     else (
       c.positives <- c.positives + 1;
       c.expected_keys <- c.expected_keys + Set.length r.expected;
@@ -95,7 +101,8 @@ let%expect_test "precision and recall by threshold" =
       c.false_alerts
       c.negatives
       (pct c.correct_hits c.hits));
-  [%expect {|
+  [%expect
+    {|
     threshold  recall(queries)  recall(entries)  false alerts  hit precision
           800   100.0%  84/84     98.7% 155/157   11.4%  5/44    95.1%
           825   100.0%  84/84     97.5% 153/157    2.3%  1/44    98.7%
@@ -107,5 +114,6 @@ let%expect_test "precision and recall by threshold" =
 
 let%expect_test "misses and false alerts at the default policy" =
   ignore (evaluate Policy.default ~on_miss:print_endline : counts);
-  [%expect {| false alert: Nikolai Belov (surname prefix) -> eu-consolidated:7009,ofac-sdn:9014 |}]
+  [%expect
+    {| false alert: Nikolai Belov (surname prefix) -> eu-consolidated:7009,ofac-sdn:9014 |}]
 ;;

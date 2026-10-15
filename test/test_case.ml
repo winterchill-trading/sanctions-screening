@@ -10,7 +10,8 @@ let b = Case.Actor.Analyst "analyst-b"
 let step (case, log) ~actor cmd =
   match Case.apply case ~actor ~at:t0 cmd with
   | Ok (case, events) ->
-    List.iter events ~f:(fun e -> print_s [%sexp (e.seq : int), (e.kind : Case.Event.Kind.t)]);
+    List.iter events ~f:(fun e ->
+      print_s [%sexp (e.seq : int), (e.kind : Case.Event.Kind.t)]);
     case, log @ events
   | Error e ->
     print_s [%sexp "refused", (Error.sexp_of_t e : Sexp.t)];
@@ -22,8 +23,16 @@ let%expect_test "false positive needs a second analyst" =
   print_s [%sexp (case.hits : string list)];
   let s = case, events in
   let s = step s ~actor:a (Assign "analyst-a") in
-  let s = step s ~actor:b (Decide { decision = False_positive; reason = "different person" }) in
-  let s = step s ~actor:a (Decide { decision = False_positive; reason = "different date of birth on passport" }) in
+  let s =
+    step s ~actor:b (Decide { decision = False_positive; reason = "different person" })
+  in
+  let s =
+    step
+      s
+      ~actor:a
+      (Decide
+         { decision = False_positive; reason = "different date of birth on passport" })
+  in
   let s = step s ~actor:a Approve in
   let s = step s ~actor:b Approve in
   let s = step s ~actor:b (Assign "analyst-b") in
@@ -31,7 +40,8 @@ let%expect_test "false positive needs a second analyst" =
   let case, log = s in
   print_s [%sexp (case.status : Case.Status.t)];
   print_s [%sexp (Case.equal (Case.of_events log |> ok_exn) case : bool)];
-  [%expect {|
+  [%expect
+    {|
     (eu-consolidated:7001 ofac-sdn:9001 uk-ofsi:15001)
     (2 (Assigned analyst-a))
     (refused
@@ -70,15 +80,22 @@ let%expect_test "true positive closes at once; rejection reopens" =
   let s = Case.open_ ~id:"case-2" ~at:t0 (force result) |> ok_exn in
   let s = step s ~actor:a (Escalate "same name, same date of birth") in
   let s = step s ~actor:a (Assign "analyst-a") in
-  let s = step s ~actor:a (Decide { decision = True_positive; reason = "passport matches" }) in
+  let s =
+    step s ~actor:a (Decide { decision = True_positive; reason = "passport matches" })
+  in
   print_s [%sexp ((fst s).status : Case.Status.t)];
-  let s = Case.open_ ~id:"case-3" ~four_eyes:All_decisions ~at:t0 (force result) |> ok_exn in
+  let s =
+    Case.open_ ~id:"case-3" ~four_eyes:All_decisions ~at:t0 (force result) |> ok_exn
+  in
   let s = step s ~actor:a (Assign "analyst-a") in
-  let s = step s ~actor:a (Decide { decision = True_positive; reason = "passport matches" }) in
+  let s =
+    step s ~actor:a (Decide { decision = True_positive; reason = "passport matches" })
+  in
   let s = step s ~actor:b (Reject "check the second passport") in
   print_s [%sexp ((fst s).status : Case.Status.t)];
   ignore (step s ~actor:System (Assign "analyst-c") : _ * _);
-  [%expect {|
+  [%expect
+    {|
     (2 (Escalated "same name, same date of birth"))
     (3 (Assigned analyst-a))
     (4 (Decided (decision True_positive) (reason "passport matches")))
@@ -102,7 +119,8 @@ let%expect_test "no case for a clear screening" =
       (Case.open_ ~id:"x" ~at:t0 (screen (person "Maria Garcia Lopez"))
        |> Or_error.map ~f:fst
        : Case.t Or_error.t)];
-  [%expect {|
+  [%expect
+    {|
     (Error
      ("no case for a clear screening"
       (screening f160fdc7f1dbea3db4f9cad23b7332cc)))
@@ -119,7 +137,9 @@ let%expect_test "replay and four eyes hold for random command streams" =
         (tuple2
            (of_list [ a; b ])
            (union
-              [ map (of_list [ "analyst-a"; "analyst-b" ]) ~f:(fun x -> Case.Command.Assign x)
+              [ map
+                  (of_list [ "analyst-a"; "analyst-b" ])
+                  ~f:(fun x -> Case.Command.Assign x)
               ; map Case.Analyst_decision.quickcheck_generator ~f:(fun decision ->
                   Case.Command.Decide { decision; reason = "r" })
               ; return Case.Command.Approve
@@ -128,23 +148,26 @@ let%expect_test "replay and four eyes hold for random command streams" =
               ])))
   in
   let closed = ref 0 in
-  Quickcheck.test gen ~sexp_of:[%sexp_of: (Case.Actor.t * Case.Command.t) list] ~f:(fun cmds ->
-    let case, events = Case.open_ ~id:"q" ~at:t0 (force result) |> ok_exn in
-    let case, log =
-      List.fold cmds ~init:(case, events) ~f:(fun (case, log) (actor, cmd) ->
-        match Case.apply case ~actor ~at:t0 cmd with
-        | Ok (case, evs) -> case, log @ evs
-        | Error _ -> case, log)
-    in
-    [%test_result: Case.t] (Case.of_events log |> ok_exn) ~expect:case;
-    match case.status with
-    | Closed { decision = False_positive; decided_by; approved_by; _ } ->
-      incr closed;
-      assert (
-        match approved_by with
-        | Some x -> not (String.equal x decided_by)
-        | None -> false)
-    | _ -> ());
+  Quickcheck.test
+    gen
+    ~sexp_of:[%sexp_of: (Case.Actor.t * Case.Command.t) list]
+    ~f:(fun cmds ->
+      let case, events = Case.open_ ~id:"q" ~at:t0 (force result) |> ok_exn in
+      let case, log =
+        List.fold cmds ~init:(case, events) ~f:(fun (case, log) (actor, cmd) ->
+          match Case.apply case ~actor ~at:t0 cmd with
+          | Ok (case, evs) -> case, log @ evs
+          | Error _ -> case, log)
+      in
+      [%test_result: Case.t] (Case.of_events log |> ok_exn) ~expect:case;
+      match case.status with
+      | Closed { decision = False_positive; decided_by; approved_by; _ } ->
+        incr closed;
+        assert (
+          match approved_by with
+          | Some x -> not (String.equal x decided_by)
+          | None -> false)
+      | _ -> ());
   print_s [%sexp (!closed > 0 : bool)];
   [%expect {| true |}]
 ;;
@@ -152,7 +175,8 @@ let%expect_test "replay and four eyes hold for random command streams" =
 let%expect_test "stable digest" =
   print_endline [%bin_digest: Case.Event.Stable.V1.t];
   print_endline [%bin_digest: Screening.Result.Stable.V1.t];
-  [%expect {|
+  [%expect
+    {|
     510db407c853232d68afe345ed9b039e
     fee877c819330486782f75cc2da84519
     |}]

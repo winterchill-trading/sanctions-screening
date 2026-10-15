@@ -20,8 +20,7 @@ let%expect_test "rescreen after a list update reports newly hit and cleared subj
     |> ok_exn
   in
   let entries =
-    added
-    :: List.filter ofac.entries ~f:(fun e -> not (String.equal e.id "9018"))
+    added :: List.filter ofac.entries ~f:(fun e -> not (String.equal e.id "9018"))
     |> List.map ~f:(fun (e : Entry.t) ->
       if String.equal e.id "9006"
       then { e with names = e.names @ [ { name = "Ahmad Shah NURZAI"; kind = Alias } ] }
@@ -30,7 +29,8 @@ let%expect_test "rescreen after a list update reports newly hit and cleared subj
   let new_ofac = Snapshot.create ~list:Ofac_sdn ~version:"2026-10-16" entries |> ok_exn in
   let after =
     Lists.create
-      (List.map (Lists.snapshots before) ~f:(fun s -> if phys_equal s ofac then new_ofac else s))
+      (List.map (Lists.snapshots before) ~f:(fun s ->
+         if phys_equal s ofac then new_ofac else s))
     |> ok_exn
   in
   let subject id name =
@@ -60,8 +60,7 @@ let%expect_test "rescreen after a list update reports newly hit and cleared subj
         (List.length d.changed));
   let ids (cs : Screening.Rescreen.change list) =
     List.map cs ~f:(fun c ->
-      ( c.subject.id
-      , List.map (Decision.hits c.result.decision) ~f:Hit.entry_key ))
+      c.subject.id, List.map (Decision.hits c.result.decision) ~f:Hit.entry_key)
   in
   print_s
     [%sexp
@@ -70,7 +69,8 @@ let%expect_test "rescreen after a list update reports newly hit and cleared subj
       ; rescreened = (r.rescreened : int)
       ; unchanged = (r.unchanged : int)
       }];
-  [%expect {|
+  [%expect
+    {|
     ofac-sdn: +1 -1 ~1
     ((newly_hit ((c-1 (ofac-sdn:9020)))) (cleared ((c-2 ()))) (rescreened 3)
      (unchanged 3))

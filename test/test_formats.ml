@@ -7,7 +7,8 @@ let%expect_test "CSV" =
       (Csv.parse
          "\xEF\xBB\xBFa,\"b, c\",\"say \"\"hi\"\"\"\r\n\r\n1,\"two\nlines\",\r\nlast\x1a"
        : string list list)];
-  [%expect {|
+  [%expect
+    {|
     ((a "b, c" "say \"hi\"") (1  "two\
                                 \nlines" "") (last))
     |}]
@@ -35,7 +36,8 @@ let%expect_test "XML" =
   |> ok_exn;
   print_s [%sexp (List.rev !ids : string list)];
   print_s [%sexp (Result.is_error (Xml.parse "<a><b></a>") : bool)];
-  [%expect {|
+  [%expect
+    {|
     (root ("1 & 2") ((1 "One \195\169\195\169") (2 <raw>)))
     (1 2)
     true
@@ -46,7 +48,8 @@ let%expect_test "country names" =
   List.iter
     [ "Iran"; "IRAN"; "Russian Federation"; "Russia"; "ru"; "Côte d'Ivoire"; "Atlantis" ]
     ~f:(fun n -> print_s [%sexp (n : string), (Country.of_name n : string option)]);
-  [%expect {|
+  [%expect
+    {|
     (Iran (IR))
     (IRAN (IR))
     ("Russian Federation" (RU))

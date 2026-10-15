@@ -1,9 +1,8 @@
 open! Core
 open Sanctions_screening
 
-(* The listed name is on a small list of its own, so every disguise must find exactly
-   that entry. Also checked against the payments policy, which has the higher
-   threshold. *)
+(* The listed name is on a small list of its own, so every disguise must find exactly that
+   entry. Also checked against the payments policy, which has the higher threshold. *)
 let lists =
   lazy
     (let entry =
@@ -16,7 +15,8 @@ let lists =
          ()
        |> ok_exn
      in
-     Lists.create [ Snapshot.create ~list:(Other "adversarial") ~version:"v1" [ entry ] |> ok_exn ]
+     Lists.create
+       [ Snapshot.create ~list:(Other "adversarial") ~version:"v1" [ entry ] |> ok_exn ]
      |> ok_exn)
 ;;
 
@@ -35,7 +35,8 @@ let%expect_test "every disguised spelling still hits" =
       | Potential_match [] | Confirmed [] -> assert false
     in
     printf "%-30s %-14s %s\n" label (score Policy.default) (score Policy.payments));
-  [%expect {|
+  [%expect
+    {|
     plain                          1000 edit      1000 edit
     Cyrillic homoglyphs            1000 edit      1000 edit
     Cyrillic er for p              1000 edit      1000 edit

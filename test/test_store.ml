@@ -4,7 +4,8 @@ module Memory = Store_conformance.Make (Store_memory)
 
 let%expect_test "memory store conformance" =
   Async.Thread_safe.block_on_async_exn (fun () -> Memory.run (Store_memory.create ()));
-  [%expect {|
+  [%expect
+    {|
     save v1: Created
     save v1 again: Duplicate
     save v1 with other content: refused
