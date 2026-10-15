@@ -1,0 +1,7 @@
+(executable
+ (name main)
+ (public_name sanctions-screening)
+ (package sanctions-screening)
+ (libraries core core_unix.command_unix sanctions-screening)
+ (preprocess
+  (pps ppx_jane)))
