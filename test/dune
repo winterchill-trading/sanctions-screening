@@ -1,0 +1,8 @@
+(library
+ (name sanctions_screening_test)
+ (inline_tests
+  (flags
+   (:standard -source-tree-root .)))
+ (libraries core sanctions-screening)
+ (preprocess
+  (pps ppx_jane)))
