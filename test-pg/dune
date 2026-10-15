@@ -1,0 +1,15 @@
+(library
+ (name sanctions_screening_pg_test)
+ (package sanctions-screening-pg)
+ (inline_tests
+  (flags
+   (:standard -source-tree-root .)))
+ (libraries
+  core
+  async
+  sanctions-screening
+  sanctions-screening-pg
+  pg-async
+  pg-async.testing)
+ (preprocess
+  (pps ppx_jane)))
