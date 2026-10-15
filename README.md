@@ -255,12 +255,13 @@ not a guarantee; a bank tunes `name_threshold` on its own alert budget. The one 
 alert at 850 is a surname that is a prefix of a listed one. Every disguise in
 `test/adversarial.ml` scores at least 975.
 
-Speed (Apple M-series, `bench/bench.exe`, release build with `-O3`; dev and release
-without `-O3` are within 10%):
+Speed (Apple M-series laptop, `bench/bench.exe`, `--profile release`; the dev profile and
+`-O3` give the same within 10%, except Jaro-Winkler at 107 ns under `-O3`; the real-list
+row was measured with `-O3`):
 
 | | time | minor words |
 | --- | --- | --- |
-| screen one name, synthetic list of 20 000 entries (55 358 names) | 0.2 to 2.5 ms | 1 300 to 2 200 |
+| screen one name, synthetic list of 20 000 entries (55 358 names) | 0.2 to 2.6 ms | 1 300 to 2 200 |
 | screen one name, the real OFAC, EU and UK lists (30 826 entries, 94 650 names) | 0.3 to 0.7 ms | 1 300 to 2 100 |
 | full scan of the 20 000 synthetic entries without the index | 72 ms | 24 |
 | `Match.score`, one name pair | 1.5 us | 0 (`[@zero_alloc]`) |
