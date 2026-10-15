@@ -2,6 +2,7 @@
  (name sanctions_screening_test)
  (inline_tests
   (deps
+   labelled.tsv
    (source_tree ../fixtures))
   (flags
    (:standard -source-tree-root .)))
