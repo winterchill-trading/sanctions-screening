@@ -26,6 +26,7 @@
   async_kernel
   ppx_jane
   kyc-core
+  (async :with-test)
   (core_bench :with-test)))
 
 (package

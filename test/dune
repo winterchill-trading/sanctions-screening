@@ -5,6 +5,6 @@
    (source_tree ../fixtures))
   (flags
    (:standard -source-tree-root .)))
- (libraries core sanctions-screening)
+ (libraries core async async_kernel kyc-core sanctions-screening)
  (preprocess
   (pps ppx_jane)))
