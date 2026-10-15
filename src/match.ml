@@ -222,7 +222,43 @@ let[@zero_alloc] first_is_short (a : string array) (b : string array) =
     !r <= 0)
 ;;
 
-let[@zero_alloc] token_alignment (scratch : Scratch.t) ~token_floor a b =
+(* Patronymics ("-ovich", "-evna", Ukrainian "-yovych") are often left out of a name
+   the customer gives; an unmatched one should not count against the match. *)
+let[@zero_alloc] ends_with (w : string) (suffix : string) =
+  let n = String.length w
+  and k = String.length suffix in
+  if n <= k + 2
+  then false
+  else (
+    let ok = ref true in
+    for i = 0 to k - 1 do
+      if not (Char.equal (String.unsafe_get w (n - k + i)) (String.unsafe_get suffix i))
+      then ok := false
+    done;
+    !ok)
+;;
+
+(* A local closure here would allocate; the zero_alloc check caught it. *)
+let[@zero_alloc] is_patronymic (w : string) =
+  ends_with w "vich" || ends_with w "vych" || ends_with w "vna" || ends_with w "ichna"
+;;
+
+(* An initial ("O.") stands for any word starting with that letter; it scores 900, below
+   an exact word, so a full name still ranks first. *)
+let initial_score = 900
+
+let[@zero_alloc] token_similarity scratch a b =
+  let la = String.length a
+  and lb = String.length b in
+  if (la = 1 || lb = 1) && la > 0 && lb > 0
+  then
+    if Char.equal (String.unsafe_get a 0) (String.unsafe_get b 0)
+    then if la = lb then 1000 else initial_score
+    else 0
+  else jaro_winkler scratch a b
+;;
+
+let[@zero_alloc] token_alignment_packed (scratch : Scratch.t) ~token_floor a b =
   let short, long = if first_is_short a b then a, b else b, a in
   let nl = Int.min (Array.length long) Scratch.max_length in
   let used = scratch.used in
@@ -237,7 +273,7 @@ let[@zero_alloc] token_alignment (scratch : Scratch.t) ~token_floor a b =
     for j = 0 to nl - 1 do
       if Char.equal (Bytes.unsafe_get used j) '\000'
       then (
-        let s = jaro_winkler scratch t (Array.unsafe_get long j) in
+        let s = token_similarity scratch t (Array.unsafe_get long j) in
         if s > !best_score
         then (
           best := j;
@@ -248,7 +284,19 @@ let[@zero_alloc] token_alignment (scratch : Scratch.t) ~token_floor a b =
       Bytes.unsafe_set used !best '\001';
       total := !total + !best_score)
   done;
-  !total
+  let skipped = ref 0 in
+  if Array.length short < Array.length long
+  then
+    for j = 0 to nl - 1 do
+      if Char.equal (Bytes.unsafe_get used j) '\000' && is_patronymic (Array.unsafe_get long j)
+      then incr skipped
+    done;
+  (* Sum and skipped count packed in one int, so nothing is allocated. *)
+  (!total lsl 8) lor Int.min !skipped 255
+;;
+
+let[@zero_alloc] token_alignment scratch ~token_floor a b =
+  token_alignment_packed scratch ~token_floor a b lsr 8
 ;;
 
 let[@zero_alloc] common_codes (a : int array) (b : int array) =
@@ -293,7 +341,7 @@ module Weights = struct
   [@@deriving sexp, compare, equal, bin_io]
 
   let default =
-    { token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930; token_floor = 700 }
+    { token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930; token_floor = 850 }
   ;;
 end
 
@@ -328,12 +376,14 @@ let components scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t) =
   and nb = Array.length kb.tokens in
   let shorter = Int.min na nb
   and longer = Int.max na nb in
-  let sum = token_alignment scratch ~token_floor:w.token_floor ka.tokens kb.tokens in
+  let packed = token_alignment_packed scratch ~token_floor:w.token_floor ka.tokens kb.tokens in
+  let sum = packed lsr 8
+  and cover_den = longer - (packed land 255) in
   { Components.jaro_winkler = jaro_winkler scratch ka.sorted kb.sorted
   ; edit = edit_similarity scratch ka.sorted kb.sorted
   ; compact = edit_similarity scratch ka.compact kb.compact
   ; token_set = (if shorter = 0 then 0 else div_round sum shorter)
-  ; token_cover = (if longer = 0 then 0 else div_round sum longer)
+  ; token_cover = (if cover_den = 0 then 0 else div_round sum cover_den)
   ; phonetic =
       (if longer = 0 then 0 else div_round (1000 * common_codes a.codes b.codes) longer)
   ; skeleton =
@@ -374,9 +424,12 @@ let[@zero_alloc] score scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t)
   and longer = Int.max na nb in
   if longer > 0
   then (
-    let sum = token_alignment scratch ~token_floor:w.token_floor ka.tokens kb.tokens in
+    let packed =
+      token_alignment_packed scratch ~token_floor:w.token_floor ka.tokens kb.tokens
+    in
+    let sum = packed lsr 8 in
     let token_set = if shorter = 0 then 0 else div_round sum shorter in
-    let token_cover = div_round sum longer in
+    let token_cover = div_round sum (longer - (packed land 255)) in
     keep
       (div_round
          ((token_set * w.token_set_share) + (token_cover * (1000 - w.token_set_share)))

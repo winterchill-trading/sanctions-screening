@@ -102,8 +102,8 @@ let%expect_test "explained name scores" =
     Muhammad Abdullah | محمد عبد الله
     ((score 930) (best skeleton)
      (components
-      ((jaro_winkler 788) (edit 412) (compact 562) (token_set 744)
-       (token_cover 496) (phonetic 0) (skeleton 944))))
+      ((jaro_winkler 788) (edit 412) (compact 562) (token_set 0) (token_cover 0)
+       (phonetic 0) (skeleton 944))))
     Northwind Trading Ltd | Northwind Trading
     ((score 1000) (best edit)
      (components
@@ -112,8 +112,8 @@ let%expect_test "explained name scores" =
     Robert Brown | Rupert Green
     ((score 583) (best edit)
      (components
-      ((jaro_winkler 722) (edit 583) (compact 545) (token_set 400)
-       (token_cover 400) (phonetic 500) (skeleton 0))))
+      ((jaro_winkler 722) (edit 583) (compact 545) (token_set 0) (token_cover 0)
+       (phonetic 500) (skeleton 0))))
     |}]
 ;;
 

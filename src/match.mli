@@ -44,7 +44,8 @@ val soundex_to_string : int -> string
 
 (** Token alignment in the manner of Monge-Elkan: each token of the name with fewer
     tokens (ties broken by comparing the tokens, so the result does not depend on argument
-    order) is paired with the most similar unused token of the other by Jaro-Winkler;
+    order) is paired with the most similar unused token of the other by Jaro-Winkler (a
+    one-letter token is an initial: 900 against any word with that first letter);
     pairs below [token_floor] count 0. Returns the sum of the pairs' similarities. *)
 val token_alignment
   :  Scratch.t
@@ -66,7 +67,10 @@ module Components : sig
     ; edit : int (** {!edit_similarity} on the sorted-token strings *)
     ; compact : int (** {!edit_similarity} on the separator-free strings *)
     ; token_set : int (** {!token_alignment} over the shorter name's token count *)
-    ; token_cover : int (** {!token_alignment} over the longer name's token count *)
+    ; token_cover : int
+    (** {!token_alignment} over the longer name's token count, not counting its
+        unmatched patronymics (["-ovich"], ["-evna"], ["-yovych"]): a customer often
+        leaves the patronymic out *)
     ; phonetic : int (** shared Soundex codes over the longer name's token count *)
     ; skeleton : int
     (** Jaro-Winkler on consonant skeletons, when either side was written in Arabic
@@ -88,7 +92,7 @@ module Weights : sig
   [@@deriving sexp, compare, equal, bin_io]
 
   (** [{ token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930;
-      token_floor = 700 }], tuned on the labelled set in [test/]. *)
+      token_floor = 850 }], tuned on the labelled set in [test/]. *)
   val default : t
 end
 
