@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!-- Sanitised excerpt in the OFAC advanced XML format. Every party is invented. -->
+<Sanctions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Version="3" xmlns="https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/ADVANCED_XML">
+  <DateOfIssue CalendarTypeID="1">
+    <Year>2026</Year>
+    <Month>10</Month>
+    <Day>15</Day>
+  </DateOfIssue>
+  <ReferenceValueSets>
+    <AliasTypeValues>
+      <AliasType ID="1400">A.K.A.</AliasType>
+      <AliasType ID="1401">F.K.A.</AliasType>
+      <AliasType ID="1402">N.K.A.</AliasType>
+      <AliasType ID="1403">Name</AliasType>
+    </AliasTypeValues>
+    <CountryValues>
+      <Country ID="11109" ISO2="IR">Iran</Country>
+      <Country ID="11074" ISO2="CY">Cyprus</Country>
+      <Country ID="11182" ISO2="SY">Syria</Country>
+      <Country ID="11143" ISO2="RU">Russia</Country>
+    </CountryValues>
+    <FeatureTypeValues>
+      <FeatureType ID="8" FeatureTypeGroupID="1">Birthdate</FeatureType>
+      <FeatureType ID="10" FeatureTypeGroupID="1">Nationality Country</FeatureType>
+      <FeatureType ID="11" FeatureTypeGroupID="1">Citizenship Country</FeatureType>
+      <FeatureType ID="26" FeatureTypeGroupID="1">Title</FeatureType>
+    </FeatureTypeValues>
+    <NamePartTypeValues>
+      <NamePartType ID="1520">Last Name</NamePartType>
+      <NamePartType ID="1521">First Name</NamePartType>
+      <NamePartType ID="1522">Middle Name</NamePartType>
+      <NamePartType ID="1525">Entity Name</NamePartType>
+      <NamePartType ID="1526">Vessel Name</NamePartType>
+    </NamePartTypeValues>
+    <PartySubTypeValues>
+      <PartySubType ID="1" PartyTypeID="4">Vessel</PartySubType>
+      <PartySubType ID="2" PartyTypeID="4">Aircraft</PartySubType>
+      <PartySubType ID="3" PartyTypeID="2">Unknown</PartySubType>
+      <PartySubType ID="4" PartyTypeID="1">Unknown</PartySubType>
+    </PartySubTypeValues>
+    <PartyTypeValues>
+      <PartyType ID="1">Individual</PartyType>
+      <PartyType ID="2">Entity</PartyType>
+      <PartyType ID="3">Location</PartyType>
+      <PartyType ID="4">Transport</PartyType>
+    </PartyTypeValues>
+    <SanctionsTypeValues>
+      <SanctionsType ID="1705">Block</SanctionsType>
+      <SanctionsType ID="1">Program</SanctionsType>
+    </SanctionsTypeValues>
+  </ReferenceValueSets>
+  <Locations>
+    <Location ID="501">
+      <LocationAreaCode AreaCodeID="11182" />
+      <LocationCountry CountryID="11182" CountryRelevanceID="1413" />
+    </Location>
+    <Location ID="502">
+      <LocationCountry CountryID="11074" CountryRelevanceID="1413" />
+    </Location>
+    <Location ID="503">
+      <LocationCountry CountryID="11143" CountryRelevanceID="1413" />
+    </Location>
+  </Locations>
+  <DistinctParties>
+    <DistinctParty FixedRef="9101">
+      <Comment />
+      <Profile ID="9101" PartySubTypeID="4">
+        <Identity ID="19101" FixedRef="9101" Primary="true" False="false">
+          <Alias FixedRef="9101" AliasTypeID="1403" Primary="true" LowQuality="false">
+            <DocumentedName ID="29101" FixedRef="9101" DocNameStatusID="1">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39101" ScriptID="215" ScriptStatusID="1" Acronym="false">KALBANI</NamePartValue>
+              </DocumentedNamePart>
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39102" ScriptID="215" ScriptStatusID="1" Acronym="false">Yusuf Haddad</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <Alias FixedRef="9101" AliasTypeID="1400" Primary="false" LowQuality="false">
+            <DocumentedName ID="29102" FixedRef="9101" DocNameStatusID="2">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39103" ScriptID="220" ScriptStatusID="1" Acronym="false">يوسف حداد الكلباني</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <Alias FixedRef="9101" AliasTypeID="1400" Primary="false" LowQuality="true">
+            <DocumentedName ID="29103" FixedRef="9101" DocNameStatusID="2">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39104" ScriptID="215" ScriptStatusID="1" Acronym="false">ABU YUSUF</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <NamePartGroups>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39101" NamePartTypeID="1520" />
+            </MasterNamePartGroup>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39102" NamePartTypeID="1521" />
+            </MasterNamePartGroup>
+          </NamePartGroups>
+        </Identity>
+        <Feature ID="49101" FeatureTypeID="8">
+          <FeatureVersion ID="59101" ReliabilityID="1">
+            <Comment />
+            <DatePeriod CalendarTypeID="1" YearFixed="false" MonthFixed="false" DayFixed="false">
+              <Start Approximate="false" YearFixed="false" MonthFixed="false" DayFixed="false">
+                <From><Year>1970</Year><Month>5</Month><Day>2</Day></From>
+                <To><Year>1970</Year><Month>5</Month><Day>2</Day></To>
+              </Start>
+              <End Approximate="false" YearFixed="false" MonthFixed="false" DayFixed="false">
+                <From><Year>1970</Year><Month>5</Month><Day>2</Day></From>
+                <To><Year>1970</Year><Month>5</Month><Day>2</Day></To>
+              </End>
+            </DatePeriod>
+            <VersionDetail DetailTypeID="1430" />
+          </FeatureVersion>
+          <IdentityReference IdentityID="19101" IdentityFeatureLinkTypeID="1" />
+        </Feature>
+        <Feature ID="49102" FeatureTypeID="10">
+          <FeatureVersion ID="59102" ReliabilityID="1">
+            <Comment />
+            <VersionDetail DetailTypeID="1433" />
+            <VersionLocation LocationID="501" />
+          </FeatureVersion>
+          <IdentityReference IdentityID="19101" IdentityFeatureLinkTypeID="1" />
+        </Feature>
+      </Profile>
+    </DistinctParty>
+    <DistinctParty FixedRef="9102">
+      <Comment />
+      <Profile ID="9102" PartySubTypeID="3">
+        <Identity ID="19102" FixedRef="9102" Primary="true" False="false">
+          <Alias FixedRef="9102" AliasTypeID="1403" Primary="true" LowQuality="false">
+            <DocumentedName ID="29104" FixedRef="9102" DocNameStatusID="1">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39105" ScriptID="215" ScriptStatusID="1" Acronym="false">EASTMOOR BANK PJSC</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <Alias FixedRef="9102" AliasTypeID="1401" Primary="false" LowQuality="false">
+            <DocumentedName ID="29105" FixedRef="9102" DocNameStatusID="2">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39106" ScriptID="215" ScriptStatusID="1" Acronym="false">EASTMOOR COMMERCIAL BANK</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <NamePartGroups>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39105" NamePartTypeID="1525" />
+            </MasterNamePartGroup>
+          </NamePartGroups>
+        </Identity>
+      </Profile>
+    </DistinctParty>
+    <DistinctParty FixedRef="9103">
+      <Comment />
+      <Profile ID="9103" PartySubTypeID="1">
+        <Identity ID="19103" FixedRef="9103" Primary="true" False="false">
+          <Alias FixedRef="9103" AliasTypeID="1403" Primary="true" LowQuality="false">
+            <DocumentedName ID="29106" FixedRef="9103" DocNameStatusID="1">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39107" ScriptID="215" ScriptStatusID="1" Acronym="false">NORTHERN DAWN</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <NamePartGroups>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39107" NamePartTypeID="1526" />
+            </MasterNamePartGroup>
+          </NamePartGroups>
+        </Identity>
+      </Profile>
+    </DistinctParty>
+    <DistinctParty FixedRef="9104">
+      <Comment />
+      <Profile ID="9104" PartySubTypeID="4">
+        <Identity ID="19104" FixedRef="9104" Primary="true" False="false">
+          <Alias FixedRef="9104" AliasTypeID="1403" Primary="true" LowQuality="false">
+            <DocumentedName ID="29107" FixedRef="9104" DocNameStatusID="1">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39108" ScriptID="215" ScriptStatusID="1" Acronym="false">PAPATHANASOGLOU</NamePartValue>
+              </DocumentedNamePart>
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39109" ScriptID="215" ScriptStatusID="1" Acronym="false">Andreas</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <Alias FixedRef="9104" AliasTypeID="1400" Primary="false" LowQuality="false">
+            <DocumentedName ID="29108" FixedRef="9104" DocNameStatusID="2">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39110" ScriptID="230" ScriptStatusID="1" Acronym="false">Ανδρέας Παπαθανασόγλου</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <NamePartGroups>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39108" NamePartTypeID="1520" />
+            </MasterNamePartGroup>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39109" NamePartTypeID="1521" />
+            </MasterNamePartGroup>
+          </NamePartGroups>
+        </Identity>
+        <Feature ID="49103" FeatureTypeID="8">
+          <FeatureVersion ID="59103" ReliabilityID="1">
+            <Comment />
+            <DatePeriod CalendarTypeID="1" YearFixed="false" MonthFixed="false" DayFixed="false">
+              <Start Approximate="false" YearFixed="false" MonthFixed="false" DayFixed="false">
+                <From><Year>1958</Year></From>
+                <To><Year>1958</Year></To>
+              </Start>
+              <End Approximate="false" YearFixed="false" MonthFixed="false" DayFixed="false">
+                <From><Year>1958</Year></From>
+                <To><Year>1958</Year></To>
+              </End>
+            </DatePeriod>
+            <VersionDetail DetailTypeID="1430" />
+          </FeatureVersion>
+          <IdentityReference IdentityID="19104" IdentityFeatureLinkTypeID="1" />
+        </Feature>
+        <Feature ID="49104" FeatureTypeID="11">
+          <FeatureVersion ID="59104" ReliabilityID="1">
+            <Comment />
+            <VersionDetail DetailTypeID="1433" />
+            <VersionLocation LocationID="502" />
+          </FeatureVersion>
+          <IdentityReference IdentityID="19104" IdentityFeatureLinkTypeID="1" />
+        </Feature>
+      </Profile>
+    </DistinctParty>
+    <DistinctParty FixedRef="9105">
+      <Comment />
+      <Profile ID="9105" PartySubTypeID="4">
+        <Identity ID="19105" FixedRef="9105" Primary="true" False="false">
+          <Alias FixedRef="9105" AliasTypeID="1403" Primary="true" LowQuality="false">
+            <DocumentedName ID="29109" FixedRef="9105" DocNameStatusID="1">
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39111" ScriptID="215" ScriptStatusID="1" Acronym="false">TALEBZADEH</NamePartValue>
+              </DocumentedNamePart>
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39112" ScriptID="215" ScriptStatusID="1" Acronym="false">Rashid</NamePartValue>
+              </DocumentedNamePart>
+              <DocumentedNamePart>
+                <NamePartValue NamePartGroupID="39113" ScriptID="215" ScriptStatusID="1" Acronym="false">Kareem</NamePartValue>
+              </DocumentedNamePart>
+            </DocumentedName>
+          </Alias>
+          <NamePartGroups>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39111" NamePartTypeID="1520" />
+            </MasterNamePartGroup>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39112" NamePartTypeID="1521" />
+            </MasterNamePartGroup>
+            <MasterNamePartGroup>
+              <NamePartGroup ID="39113" NamePartTypeID="1522" />
+            </MasterNamePartGroup>
+          </NamePartGroups>
+        </Identity>
+        <Feature ID="49105" FeatureTypeID="8">
+          <FeatureVersion ID="59105" ReliabilityID="1">
+            <Comment />
+            <DatePeriod CalendarTypeID="1" YearFixed="false" MonthFixed="false" DayFixed="false">
+              <Start Approximate="false" YearFixed="false" MonthFixed="false" DayFixed="false">
+                <From><Year>1962</Year></From>
+                <To><Year>1962</Year></To>
+              </Start>
+              <End Approximate="false" YearFixed="false" MonthFixed="false" DayFixed="false">
+                <From><Year>1964</Year></From>
+                <To><Year>1964</Year></To>
+              </End>
+            </DatePeriod>
+            <VersionDetail DetailTypeID="1430" />
+          </FeatureVersion>
+          <IdentityReference IdentityID="19105" IdentityFeatureLinkTypeID="1" />
+        </Feature>
+        <Feature ID="49106" FeatureTypeID="10">
+          <FeatureVersion ID="59106" ReliabilityID="1">
+            <Comment />
+            <VersionDetail DetailTypeID="1433" />
+            <VersionLocation LocationID="503" />
+          </FeatureVersion>
+          <IdentityReference IdentityID="19105" IdentityFeatureLinkTypeID="1" />
+        </Feature>
+      </Profile>
+    </DistinctParty>
+  </DistinctParties>
+  <SanctionsEntries>
+    <SanctionsEntry ID="9101" ProfileID="9101" ListID="1550">
+      <EntryEvent ID="9101" EntryEventTypeID="1" LegalBasisID="1">
+        <Comment />
+        <Date CalendarTypeID="1"><Year>2019</Year><Month>3</Month><Day>14</Day></Date>
+      </EntryEvent>
+      <SanctionsMeasure ID="69101" SanctionsTypeID="1705">
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+      <SanctionsMeasure ID="69102" SanctionsTypeID="1">
+        <Comment>SYRIA</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+    <SanctionsEntry ID="9102" ProfileID="9102" ListID="1550">
+      <EntryEvent ID="9102" EntryEventTypeID="1" LegalBasisID="1">
+        <Comment />
+        <Date CalendarTypeID="1"><Year>2022</Year><Month>4</Month><Day>6</Day></Date>
+      </EntryEvent>
+      <SanctionsMeasure ID="69103" SanctionsTypeID="1">
+        <Comment>RUSSIA-EO14024</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+    <SanctionsEntry ID="9103" ProfileID="9103" ListID="1550">
+      <SanctionsMeasure ID="69104" SanctionsTypeID="1">
+        <Comment>IRAN</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+      <SanctionsMeasure ID="69105" SanctionsTypeID="1">
+        <Comment>SDGT</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+    <SanctionsEntry ID="9104" ProfileID="9104" ListID="1550">
+      <SanctionsMeasure ID="69106" SanctionsTypeID="1">
+        <Comment>CYPRUS-TEST</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+    <SanctionsEntry ID="9105" ProfileID="9105" ListID="1550">
+      <SanctionsMeasure ID="69107" SanctionsTypeID="1">
+        <Comment>RUSSIA-EO14024</Comment>
+        <DatePeriod CalendarTypeID="1" YearFixed="true" MonthFixed="true" DayFixed="true" />
+      </SanctionsMeasure>
+    </SanctionsEntry>
+  </SanctionsEntries>
+</Sanctions>
