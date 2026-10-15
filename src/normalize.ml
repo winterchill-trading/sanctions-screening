@@ -35,8 +35,8 @@ let is_word_char cp =
   Unicode_fold.is_letter_or_digit cp || Unicode_fold.is_ignorable cp || is_apostrophe cp
 ;;
 
-(* Splits Unicode-folded text into words: runs of letters and digits, where invisible
-   code points and apostrophes do not end a word. *)
+(* Splits Unicode-folded text into words: runs of letters and digits, where invisible code
+   points and apostrophes do not end a word. *)
 let words folded =
   let out = ref [] in
   let buf = Buffer.create 16 in
@@ -74,8 +74,8 @@ let disguised_word word =
   (!ascii && !lookalike) || (!lookalike && !all_confusable) || (!digit && !letter)
 ;;
 
-(* Latin spelling of one word. Separators inside it (a letter-like symbol without a
-   table entry) become spaces. *)
+(* Latin spelling of one word. Separators inside it (a letter-like symbol without a table
+   entry) become spaces. *)
 let latinise_word ~visual word =
   let buf = Buffer.create (String.length word) in
   let space () =
@@ -84,30 +84,30 @@ let latinise_word ~visual word =
   in
   let prev = ref 0 in
   Utf8.iter word ~f:(fun cp ->
-    (if cp < 0x80
-     then (
-       let c = Char.of_int_exn cp in
-       if Char.is_alphanum c
-       then Buffer.add_char buf (if visual then digit_lookalike c else c)
-       else if is_apostrophe cp
-       then ()
-       else space ())
-     else if is_apostrophe cp || Unicode_fold.is_ignorable cp
-     then ()
-     else (
-       match visual, Translit.confusable cp with
-       | true, Some l -> Buffer.add_string buf l
-       | _ ->
-         if cp = 0x3C5 && !prev = 0x3BF
-         then (* ELOT 743: omicron upsilon is "ou", not "oy". *)
-           Buffer.add_char buf 'u'
-         else (
-           match Translit.latin cp with
-           | Some l -> Buffer.add_string buf l
-           | None ->
-             (* A letter or digit we cannot Latinise is kept as it is, never dropped:
-                deleting it would let unlisted scripts hide inside a name. *)
-             if Unicode_fold.is_letter_or_digit cp then Utf8.encode buf cp else space ())));
+    if cp < 0x80
+    then (
+      let c = Char.of_int_exn cp in
+      if Char.is_alphanum c
+      then Buffer.add_char buf (if visual then digit_lookalike c else c)
+      else if is_apostrophe cp
+      then ()
+      else space ())
+    else if is_apostrophe cp || Unicode_fold.is_ignorable cp
+    then ()
+    else (
+      match visual, Translit.confusable cp with
+      | true, Some l -> Buffer.add_string buf l
+      | _ ->
+        if cp = 0x3C5 && !prev = 0x3BF
+        then (* ELOT 743: omicron upsilon is "ou", not "oy". *)
+          Buffer.add_char buf 'u'
+        else (
+          match Translit.latin cp with
+          | Some l -> Buffer.add_string buf l
+          | None ->
+            (* A letter or digit we cannot Latinise is kept as it is, never dropped:
+               deleting it would let unlisted scripts hide inside a name. *)
+            if Unicode_fold.is_letter_or_digit cp then Utf8.encode buf cp else space ()));
     prev := cp);
   String.strip ~drop:(Char.equal ' ') (Buffer.contents buf)
 ;;
@@ -261,9 +261,24 @@ let vessel_set = String.Set.of_list vessel_prefixes
    Single letters are left alone: "I" or "V" is more often an initial. *)
 let roman =
   String.Map.of_alist_exn
-    [ "ii", "2"; "iii", "3"; "iv", "4"; "vi", "6"; "vii", "7"; "viii", "8"; "ix", "9"
-    ; "xi", "11"; "xii", "12"; "xiii", "13"; "xiv", "14"; "xv", "15"; "xvi", "16"
-    ; "xvii", "17"; "xviii", "18"; "xix", "19"; "xx", "20" ]
+    [ "ii", "2"
+    ; "iii", "3"
+    ; "iv", "4"
+    ; "vi", "6"
+    ; "vii", "7"
+    ; "viii", "8"
+    ; "ix", "9"
+    ; "xi", "11"
+    ; "xii", "12"
+    ; "xiii", "13"
+    ; "xiv", "14"
+    ; "xv", "15"
+    ; "xvi", "16"
+    ; "xvii", "17"
+    ; "xviii", "18"
+    ; "xix", "19"
+    ; "xx", "20"
+    ]
 ;;
 
 let tokens_of_folded ~(party : Party_type.t) folded =

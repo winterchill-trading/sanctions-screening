@@ -1,7 +1,7 @@
 (** Minimal UTF-8 decoding and encoding for the normaliser. *)
 
-(** [decode s ~pos] reads one code point starting at byte [pos] and returns it packed
-    as [(code_point lsl 3) lor byte_length]; use {!code_point} and {!length} to unpack.
+(** [decode s ~pos] reads one code point starting at byte [pos] and returns it packed as
+    [(code_point lsl 3) lor byte_length]; use {!code_point} and {!length} to unpack.
     Malformed or truncated sequences decode as U+FFFD with length 1, so a scan always
     makes progress. Packing keeps the call allocation-free. *)
 val decode : string -> pos:int -> int

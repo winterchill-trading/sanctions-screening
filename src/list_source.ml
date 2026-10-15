@@ -70,7 +70,10 @@ let ofac_version path =
      | [] -> "unknown")
   | None ->
     let mtime = (Core_unix.stat path).st_mtime in
-    Date.to_string (Date.of_time (Time_float.of_span_since_epoch (Time_float.Span.of_sec mtime)) ~zone:Time_float.Zone.utc)
+    Date.to_string
+      (Date.of_time
+         (Time_float.of_span_since_epoch (Time_float.Span.of_sec mtime))
+         ~zone:Time_float.Zone.utc)
 ;;
 
 let load_dir dir =

@@ -1,7 +1,7 @@
-(** A screening alert's case: opened on a potential match, reviewed by analysts, closed
-    as a true or false positive. A pure state machine: every command returns the new
-    record and the events to append; {!of_events} rebuilds the record from the events, so
-    the audit trail is the source of truth.
+(** A screening alert's case: opened on a potential match, reviewed by analysts, closed as
+    a true or false positive. A pure state machine: every command returns the new record
+    and the events to append; {!of_events} rebuilds the record from the events, so the
+    audit trail is the source of truth.
 
     {v
       open -> Open
@@ -146,7 +146,12 @@ val open_
 
 (** Validates the command against the state and the actor (an analyst; a second review
     must come from a different analyst), and returns the new state with its events. *)
-val apply : t -> actor:Actor.t -> at:Time_ns.t -> Command.t -> (t * Event.t list) Or_error.t
+val apply
+  :  t
+  -> actor:Actor.t
+  -> at:Time_ns.t
+  -> Command.t
+  -> (t * Event.t list) Or_error.t
 
 (** Rebuilds a case from its events, checking ids and sequence numbers. *)
 val of_events : Event.t list -> t Or_error.t

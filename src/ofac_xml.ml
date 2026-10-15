@@ -1,6 +1,8 @@
 open! Core
 
-let int_child el name = Option.bind (Xml.child el name) ~f:(fun c -> Int.of_string_opt (Xml.text c))
+let int_child el name =
+  Option.bind (Xml.child el name) ~f:(fun c -> Int.of_string_opt (Xml.text c))
+;;
 
 (* A <From>/<To> pair inside <Start> of a DatePeriod. *)
 let ymd el = int_child el "Year", int_child el "Month", int_child el "Day"
@@ -25,7 +27,7 @@ let dob_of_period period =
 type state =
   { mutable version : string
   ; refs : (string, (string * string) list) Hashtbl.t
-    (* value set name -> (ID, text or attribute) *)
+      (* value set name -> (ID, text or attribute) *)
   ; location_country : (string, string) Hashtbl.t
   ; programmes : (string, string list) Hashtbl.t
   ; listed_on : (string, Date.t) Hashtbl.t
@@ -66,7 +68,10 @@ let parse text =
           Hashtbl.add_multi
             st.programmes
             ~key:profile
-            ~data:(Xml.attr_or_empty m "SanctionsTypeID" ^ "\000" ^ Option.value_map (Xml.child m "Comment") ~default:"" ~f:Xml.text));
+            ~data:
+              (Xml.attr_or_empty m "SanctionsTypeID"
+               ^ "\000"
+               ^ Option.value_map (Xml.child m "Comment") ~default:"" ~f:Xml.text));
         Option.iter (Xml.child el "EntryEvent") ~f:(fun ev ->
           Option.iter (Xml.child ev "Date") ~f:(fun d ->
             match ymd d with
@@ -81,24 +86,28 @@ let parse text =
           ~key:name
           ~data:
             (List.filter_map el.children ~f:(function
-               | Element v ->
-                 let id = Xml.attr_or_empty v "ID" in
-                 (* Countries are referred to by ISO2; party subtypes by their type. *)
-                 let value =
-                   match name with
-                   | "CountryValues" -> Xml.attr_or_empty v "ISO2"
-                   | "PartySubTypeValues" ->
-                     Xml.attr_or_empty v "PartyTypeID" ^ "\000" ^ Xml.text v
-                   | _ -> Xml.text v
-                 in
-                 Some (id, value)
-               | Text _ -> None))
+              | Element v ->
+                let id = Xml.attr_or_empty v "ID" in
+                (* Countries are referred to by ISO2; party subtypes by their type. *)
+                let value =
+                  match name with
+                  | "CountryValues" -> Xml.attr_or_empty v "ISO2"
+                  | "PartySubTypeValues" ->
+                    Xml.attr_or_empty v "PartyTypeID" ^ "\000" ^ Xml.text v
+                  | _ -> Xml.text v
+                in
+                Some (id, value)
+              | Text _ -> None))
       | _ -> ())
   in
   (match issue with
    | [| Some y; Some m; Some d |] -> st.version <- sprintf "%04d-%02d-%02d" y m d
    | _ -> ());
-  let ref_table set = String.Map.of_alist_reduce (Option.value (Hashtbl.find st.refs set) ~default:[]) ~f:(fun a _ -> a) in
+  let ref_table set =
+    String.Map.of_alist_reduce
+      (Option.value (Hashtbl.find st.refs set) ~default:[])
+      ~f:(fun a _ -> a)
+  in
   let countries = ref_table "CountryValues"
   and party_types = ref_table "PartyTypeValues"
   and subtypes = ref_table "PartySubTypeValues"
@@ -110,7 +119,9 @@ let parse text =
     Map.filter features ~f:(String.equal n) |> Map.keys |> String.Set.of_list
   in
   let birth = feature_named "Birthdate"
-  and nationality = Set.union (feature_named "Nationality Country") (feature_named "Citizenship Country") in
+  and nationality =
+    Set.union (feature_named "Nationality Country") (feature_named "Citizenship Country")
+  in
   let party_type profile : Party_type.t =
     match Map.find subtypes (Xml.attr_or_empty profile "PartySubTypeID") with
     | None -> Unknown
@@ -161,7 +172,10 @@ let parse text =
             { Entry.Name.name; kind }))
       in
       let feature_list = Xml.children profile "Feature" in
-      let of_type ids = List.filter feature_list ~f:(fun f -> Set.mem ids (Xml.attr_or_empty f "FeatureTypeID")) in
+      let of_type ids =
+        List.filter feature_list ~f:(fun f ->
+          Set.mem ids (Xml.attr_or_empty f "FeatureTypeID"))
+      in
       let dobs =
         of_type birth
         |> List.concat_map ~f:(fun f -> Xml.descendants f "DatePeriod")
@@ -171,7 +185,9 @@ let parse text =
         of_type nationality
         |> List.concat_map ~f:(fun f -> Xml.descendants f "VersionLocation")
         |> List.filter_map ~f:(fun vl ->
-          let%bind.Option country = Hashtbl.find st.location_country (Xml.attr_or_empty vl "LocationID") in
+          let%bind.Option country =
+            Hashtbl.find st.location_country (Xml.attr_or_empty vl "LocationID")
+          in
           Map.find countries country)
         |> List.filter ~f:(Fn.non String.is_empty)
       in
@@ -196,6 +212,6 @@ let parse text =
         ())
     |> Or_error.combine_errors
   in
-  let%bind entries = entries in
+  let%bind entries in
   Snapshot.create ~list:Ofac_sdn ~version:st.version entries
 ;;

@@ -146,8 +146,8 @@ let evolve t (e : Event.t) =
   { t with status; version = e.seq }
 ;;
 
-(* Status after a batch: the pending decision is carried in the events, so compute it
-   from the batch rather than from single events. *)
+(* Status after a batch: the pending decision is carried in the events, so compute it from
+   the batch rather than from single events. *)
 let finish_batch t (events : Event.t list) =
   let decided =
     List.find_map events ~f:(fun e ->
@@ -156,7 +156,8 @@ let finish_batch t (events : Event.t list) =
       | _ -> None)
   in
   let submitted =
-    List.exists events ~f:(fun e -> [%equal: Event.Kind.t] e.kind Submitted_for_second_review)
+    List.exists events ~f:(fun e ->
+      [%equal: Event.Kind.t] e.kind Submitted_for_second_review)
   in
   let approved =
     List.find_map events ~f:(fun e ->
@@ -213,7 +214,8 @@ let apply t ~(actor : Actor.t) ~at (command : Command.t) =
   let open Or_error.Let_syntax in
   let refuse msg =
     Or_error.error_s
-      [%message msg ~case:t.id (t.status : Status.t) (command : Command.t) (actor : Actor.t)]
+      [%message
+        msg ~case:t.id (t.status : Status.t) (command : Command.t) (actor : Actor.t)]
   in
   let%bind analyst =
     match actor with
@@ -256,7 +258,8 @@ let of_events events =
   let open Or_error.Let_syntax in
   match events with
   | [] -> Or_error.error_s [%message "no events"]
-  | ({ Event.kind = Opened { subject_id; screening_id; hits; four_eyes }; _ } as first) :: rest ->
+  | ({ Event.kind = Opened { subject_id; screening_id; hits; four_eyes }; _ } as first)
+    :: rest ->
     let t =
       { id = first.case_id
       ; subject_id
@@ -273,11 +276,12 @@ let of_events events =
         if not (String.equal e.case_id t.id)
         then Or_error.error_s [%message "event of another case" (e : Event.t)]
         else if e.seq <> i + 1
-        then Or_error.error_s [%message "sequence gap" ~expected:(i + 1 : int) (e : Event.t)]
+        then
+          Or_error.error_s [%message "sequence gap" ~expected:(i + 1 : int) (e : Event.t)]
         else Ok ())
     in
-    (* Events are grouped into the batches [apply] produced: a batch starts with
-       anything but [Submitted_for_second_review] or [Closed]. *)
+    (* Events are grouped into the batches [apply] produced: a batch starts with anything
+       but [Submitted_for_second_review] or [Closed]. *)
     let batches =
       List.group rest ~break:(fun _ (b : Event.t) ->
         match b.kind with

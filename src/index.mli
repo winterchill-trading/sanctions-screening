@@ -7,8 +7,8 @@
     are indexed too, and used when the query was written in Arabic script.
 
     A query counts, per name, the trigrams it shares, and only names whose Dice overlap
-    ([2 * shared / (query trigrams + name trigrams)]) reaches the policy's [prefilter]
-    are scored with {!Match.score}. The prefilter trades speed for recall; the tests check
+    ([2 * shared / (query trigrams + name trigrams)]) reaches the policy's [prefilter] are
+    scored with {!Match.score}. The prefilter trades speed for recall; the tests check
     that on the labelled set it loses no hit that a full scan finds.
 
     An index holds scratch buffers: one query at a time (Async code is single-threaded,
@@ -34,8 +34,8 @@ val name : t -> int -> Name.t
 (** Trigram count and posting statistics, for [stats]. *)
 val stats : t -> Sexp.t
 
-(** Names whose name score against [query] reaches [threshold], as (name id, score),
-    best first. [prefilter] is per mille (0 scores every name). *)
+(** Names whose name score against [query] reaches [threshold], as (name id, score), best
+    first. [prefilter] is per mille (0 scores every name). *)
 val search
   :  t
   -> Match.Scratch.t

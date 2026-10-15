@@ -1,8 +1,7 @@
-(** Screening a subject against lists, and rescreening a population when a list
-    changes.
+(** Screening a subject against lists, and rescreening a population when a list changes.
 
-    Deterministic: the same subject, lists, policy, context and time give the same
-    result, so a decision can be replayed from its stored inputs. *)
+    Deterministic: the same subject, lists, policy, context and time give the same result,
+    so a decision can be replayed from its stored inputs. *)
 
 open! Core
 
@@ -81,8 +80,8 @@ end
     key, and cut to [policy.max_hits].
 
     [id] is the MD5 (hex) of the subject, context, list digests, policy digest and time,
-    so a retried call with the same inputs gives the same id. [?scratch] avoids
-    allocating comparison buffers per call. *)
+    so a retried call with the same inputs gives the same id. [?scratch] avoids allocating
+    comparison buffers per call. *)
 val screen
   :  ?scratch:Match.Scratch.t
   -> policy:Policy.t
@@ -113,8 +112,8 @@ module Rescreen : sig
 end
 
 (** Only subjects the delta can affect are screened again in full: those with a hit on an
-    added or changed entry (found by screening against an index of the delta alone),
-    and those whose previous hits include a removed or changed entry. *)
+    added or changed entry (found by screening against an index of the delta alone), and
+    those whose previous hits include a removed or changed entry. *)
 val rescreen
   :  ?scratch:Match.Scratch.t
   -> policy:Policy.t

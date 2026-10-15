@@ -42,5 +42,7 @@ let to_string_hum t =
       | Confirmed _ -> "confirmed"
       | _ -> "potential match"
     in
-    String.concat ~sep:"\n" (label :: List.map hits ~f:(fun h -> "  " ^ Hit.to_string_hum h))
+    String.concat
+      ~sep:"\n"
+      (label :: List.map hits ~f:(fun h -> "  " ^ Hit.to_string_hum h))
 ;;

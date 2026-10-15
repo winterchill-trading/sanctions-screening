@@ -89,9 +89,7 @@ let append_case_events t ~idempotency_key ~expected_version (events : Case.Event
      | [] -> Or_error.error_s [%message "no events to append"]
      | first :: _ ->
        let case_id = first.case_id in
-       let d =
-         digest (List.bin_writer_t Case.Event.Stable.V1.bin_writer_t) events
-       in
+       let d = digest (List.bin_writer_t Case.Event.Stable.V1.bin_writer_t) events in
        (match Hashtbl.find t.case_keys idempotency_key with
         | Some (c, d') when String.equal c case_id && String.equal d d' -> Ok `Duplicate
         | Some _ ->
@@ -107,10 +105,14 @@ let append_case_events t ~idempotency_key ~expected_version (events : Case.Event
           if version <> expected_version
           then
             Or_error.error_s
-              [%message "case version conflict" case_id ~expected:(expected_version : int) ~stored:(version : int)]
-          else if
-            List.existsi events ~f:(fun i (e : Case.Event.t) ->
-              (not (String.equal e.case_id case_id)) || e.seq <> expected_version + i + 1)
+              [%message
+                "case version conflict"
+                  case_id
+                  ~expected:(expected_version : int)
+                  ~stored:(version : int)]
+          else if List.existsi events ~f:(fun i (e : Case.Event.t) ->
+                    (not (String.equal e.case_id case_id))
+                    || e.seq <> expected_version + i + 1)
           then Or_error.error_s [%message "events out of sequence" case_id]
           else (
             Hashtbl.set t.events ~key:case_id ~data:(List.rev_append events stored);

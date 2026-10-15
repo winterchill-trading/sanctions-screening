@@ -65,4 +65,8 @@ module type S = sig
 end
 
 (** Rebuilds a case from a store's events; [None] when it has none. *)
-val find_case : (module S with type t = 'a) -> 'a -> string -> Case.t option Or_error.t Deferred.t
+val find_case
+  :  (module S with type t = 'a)
+  -> 'a
+  -> string
+  -> Case.t option Or_error.t Deferred.t

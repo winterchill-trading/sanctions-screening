@@ -3,7 +3,8 @@ open! Core
 let parse_dob s =
   match String.split (String.strip s) ~on:'/' |> List.map ~f:Int.of_string_opt with
   | [ Some 0; Some 0; Some y ] when y > 0 -> Some (Dob.Year y)
-  | [ Some 0; Some m; Some y ] when m >= 1 && m <= 12 -> Some (Month { year = y; month = m })
+  | [ Some 0; Some m; Some y ] when m >= 1 && m <= 12 ->
+    Some (Month { year = y; month = m })
   | [ Some d; Some m; Some y ] when m >= 1 && m <= 12 ->
     Option.try_with (fun () -> Dob.Day (Date.create_exn ~y ~m:(Month.of_int_exn m) ~d))
   | _ -> None
@@ -23,7 +24,8 @@ let split_numbered s =
     String.split s ~on:'('
     |> List.filter_map ~f:(fun part ->
       match String.lsplit2 part ~on:')' with
-      | Some (_, rest) when not (String.is_empty (String.strip rest)) -> Some (String.strip rest)
+      | Some (_, rest) when not (String.is_empty (String.strip rest)) ->
+        Some (String.strip rest)
       | _ -> None)
   else if String.is_empty s
   then []
@@ -45,7 +47,10 @@ let parse text =
     | header :: body -> Ok ("unknown", header, body)
     | [] -> Or_error.error_s [%message "empty UK list file"]
   in
-  let columns = List.mapi header ~f:(fun i h -> String.strip h, i) |> String.Map.of_alist_reduce ~f:(fun a _ -> a) in
+  let columns =
+    List.mapi header ~f:(fun i h -> String.strip h, i)
+    |> String.Map.of_alist_reduce ~f:(fun a _ -> a)
+  in
   let%bind col =
     let need = [ "Name 6"; "Group ID"; "Group Type"; "Alias Type" ] in
     match List.find need ~f:(fun c -> not (Map.mem columns c)) with
@@ -80,7 +85,9 @@ let parse text =
       let names =
         List.concat_map rows ~f:(fun row ->
           let name =
-            List.map [ "Name 1"; "Name 2"; "Name 3"; "Name 4"; "Name 5"; "Name 6" ] ~f:(col row)
+            List.map
+              [ "Name 1"; "Name 2"; "Name 3"; "Name 4"; "Name 5"; "Name 6" ]
+              ~f:(col row)
             |> List.filter ~f:(Fn.non String.is_empty)
             |> String.concat ~sep:" "
           in
@@ -93,7 +100,10 @@ let parse text =
           in
           let non_latin = col row "Name Non-Latin Script" in
           { Entry.Name.name; kind }
-          :: (if String.is_empty non_latin then [] else [ { Entry.Name.name = non_latin; kind = Alias } ]))
+          ::
+          (if String.is_empty non_latin
+           then []
+           else [ { Entry.Name.name = non_latin; kind = Alias } ]))
       in
       let dobs = List.filter_map rows ~f:(fun r -> parse_dob (col r "DOB")) in
       let nationalities =

@@ -95,8 +95,8 @@ let greek =
 ;;
 
 (* BGN/PCGN 1956 for Arabic, plus the Persian and Urdu letters, without diacritics. Ain
-   (U+0639) and hamza (U+0621) are dropped; ta marbuta is written "a" as in most
-   romanised names. Alef with hamza or madda decomposes to plain alef in Unicode_fold. *)
+   (U+0639) and hamza (U+0621) are dropped; ta marbuta is written "a" as in most romanised
+   names. Alef with hamza or madda decomposes to plain alef in Unicode_fold. *)
 let arabic =
   [ 0x621, ""
   ; 0x627, "a"
@@ -188,7 +188,9 @@ let table = Int.Table.of_alist_exn (cyrillic @ greek @ arabic @ latin_extra)
 let latin cp = if cp < 0x80 then None else Hashtbl.find table cp
 
 let is_abjad cp =
-  (cp >= 0x600 && cp <= 0x6FF) || (cp >= 0xFB50 && cp <= 0xFDFF) || (cp >= 0xFE70 && cp <= 0xFEFF)
+  (cp >= 0x600 && cp <= 0x6FF)
+  || (cp >= 0xFB50 && cp <= 0xFDFF)
+  || (cp >= 0xFE70 && cp <= 0xFEFF)
 ;;
 
 (* Look-alikes from Unicode's confusables.txt, restricted to letters whose lowercase form

@@ -22,22 +22,17 @@ module Format : sig
   [@@deriving sexp, compare, equal, enumerate]
 end
 
-(** Recognises a file by its name and first bytes: [*.sexp] is a fixture; XML in the
-    OFAC advanced namespace or the EU export namespace; CSV starting
-    ["Last Updated"] (UK); a file named [sdn.csv] (any case) is OFAC. [None] for
-    anything else (including [alt.csv], read together with [sdn.csv]). *)
+(** Recognises a file by its name and first bytes: [*.sexp] is a fixture; XML in the OFAC
+    advanced namespace or the EU export namespace; CSV starting ["Last Updated"] (UK); a
+    file named [sdn.csv] (any case) is OFAC. [None] for anything else (including
+    [alt.csv], read together with [sdn.csv]). *)
 val detect : filename:string -> contents:string -> Format.t option
 
 (** Parses one file. OFAC CSV takes the [alt.csv] contents as [?alt] and has no date
     inside, so [?version] names it (default ["unknown"]). *)
-val parse
-  :  Format.t
-  -> ?version:string
-  -> ?alt:string
-  -> string
-  -> Snapshot.t Or_error.t
+val parse : Format.t -> ?version:string -> ?alt:string -> string -> Snapshot.t Or_error.t
 
-(** Every list file under [dir] (recursively), in path order. For OFAC CSV, [alt.csv]
-    next to [sdn.csv] is read with it, and the version is the first line of a [VERSION]
-    file in that directory, or the file's modification date. *)
+(** Every list file under [dir] (recursively), in path order. For OFAC CSV, [alt.csv] next
+    to [sdn.csv] is read with it, and the version is the first line of a [VERSION] file in
+    that directory, or the file's modification date. *)
 val load_dir : string -> Snapshot.t list Or_error.t

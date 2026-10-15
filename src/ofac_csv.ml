@@ -14,8 +14,19 @@ let person_name name =
 ;;
 
 let months =
-  [ "jan", 1; "feb", 2; "mar", 3; "apr", 4; "may", 5; "jun", 6; "jul", 7; "aug", 8
-  ; "sep", 9; "oct", 10; "nov", 11; "dec", 12 ]
+  [ "jan", 1
+  ; "feb", 2
+  ; "mar", 3
+  ; "apr", 4
+  ; "may", 5
+  ; "jun", 6
+  ; "jul", 7
+  ; "aug", 8
+  ; "sep", 9
+  ; "oct", 10
+  ; "nov", 11
+  ; "dec", 12
+  ]
 ;;
 
 let parse_dob s =
@@ -26,7 +37,8 @@ let parse_dob s =
     | _ -> None
   in
   match String.split s ~on:' ' |> List.filter ~f:(Fn.non String.is_empty) with
-  | [ "circa"; y ] -> Option.map (year y) ~f:(fun y -> Dob.Years { from = y - 1; until = y + 1 })
+  | [ "circa"; y ] ->
+    Option.map (year y) ~f:(fun y -> Dob.Years { from = y - 1; until = y + 1 })
   | [ a; "to"; b ] ->
     (match year a, year b with
      | Some from, Some until when from <= until -> Some (Years { from; until })
@@ -38,7 +50,9 @@ let parse_dob s =
      | _ -> None)
   | [ d; m; y ] ->
     (match
-       Int.of_string_opt d, List.Assoc.find months (String.prefix m 3) ~equal:String.equal, year y
+       ( Int.of_string_opt d
+       , List.Assoc.find months (String.prefix m 3) ~equal:String.equal
+       , year y )
      with
      | Some d, Some m, Some y ->
        Option.try_with (fun () -> Dob.Day (Date.create_exn ~y ~m:(Month.of_int_exn m) ~d))
@@ -49,19 +63,25 @@ let parse_dob s =
 let quoted_aliases remark =
   (* a.k.a. 'X'; f.k.a. 'Y' *)
   let out = ref [] in
-  List.iter [ "a.k.a. '", Entry.Name.Kind.Weak_alias; "f.k.a. '", Former ] ~f:(fun (prefix, kind) ->
-    let rec go pos =
-      match String.substr_index remark ~pos ~pattern:prefix with
-      | None -> ()
-      | Some i ->
-        let start = i + String.length prefix in
-        (match String.index_from remark start '\'' with
-         | Some stop ->
-           out := { Entry.Name.name = String.sub remark ~pos:start ~len:(stop - start); kind } :: !out;
-           go (stop + 1)
-         | None -> ())
-    in
-    go 0);
+  List.iter
+    [ "a.k.a. '", Entry.Name.Kind.Weak_alias; "f.k.a. '", Former ]
+    ~f:(fun (prefix, kind) ->
+      let rec go pos =
+        match String.substr_index remark ~pos ~pattern:prefix with
+        | None -> ()
+        | Some i ->
+          let start = i + String.length prefix in
+          (match String.index_from remark start '\'' with
+           | Some stop ->
+             out
+             := { Entry.Name.name = String.sub remark ~pos:start ~len:(stop - start)
+                ; kind
+                }
+                :: !out;
+             go (stop + 1)
+           | None -> ())
+      in
+      go 0);
   List.rev !out
 ;;
 
@@ -125,7 +145,8 @@ let parse ~version ~sdn ?alt () =
       let programmes =
         String.substr_replace_all (field 3) ~pattern:"] [" ~with_:"|"
         |> String.split ~on:'|'
-        |> List.map ~f:(fun p -> String.strip ~drop:(fun c -> Char.equal c '[' || Char.equal c ']') p)
+        |> List.map ~f:(fun p ->
+          String.strip ~drop:(fun c -> Char.equal c '[' || Char.equal c ']') p)
       in
       Entry.create
         ~list:Ofac_sdn

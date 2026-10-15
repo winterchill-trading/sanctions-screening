@@ -25,7 +25,9 @@ let[@zero_alloc] decode s ~pos =
         lor ((byte s (pos + 1) land 0x3F) lsl 6)
         lor (byte s (pos + 2) land 0x3F)
       in
-      if cp < 0x800 || (cp >= 0xD800 && cp <= 0xDFFF) then replacement else (cp lsl 3) lor 3)
+      if cp < 0x800 || (cp >= 0xD800 && cp <= 0xDFFF)
+      then replacement
+      else (cp lsl 3) lor 3)
     else replacement
   else if b0 land 0xF8 = 0xF0
   then

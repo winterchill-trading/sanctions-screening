@@ -42,21 +42,17 @@ val soundex : string -> int
 (** Soundex code as text, e.g. ["R163"]. *)
 val soundex_to_string : int -> string
 
-(** Token alignment in the manner of Monge-Elkan: each token of the name with fewer
-    tokens (ties broken by comparing the tokens, so the result does not depend on argument
-    order) is paired with the most similar unused token of the other by Jaro-Winkler (a
-    one-letter token is an initial: 900 against any word with that first letter);
-    pairs below [token_floor] count 0. Returns the sum of the pairs' similarities. *)
-val token_alignment
-  :  Scratch.t
-  -> token_floor:int
-  -> string array
-  -> string array
-  -> int
+(** Token alignment in the manner of Monge-Elkan: each token of the name with fewer tokens
+    (ties broken by comparing the tokens, so the result does not depend on argument order)
+    is paired with the most similar unused token of the other by Jaro-Winkler (a
+    one-letter token is an initial: 900 against any word with that first letter); pairs
+    below [token_floor] count 0. Returns the sum of the pairs' similarities. *)
+val token_alignment : Scratch.t -> token_floor:int -> string array -> string array -> int
 [@@zero_alloc]
 
 (** Shared Soundex codes of two sorted code arrays (multiset intersection size). *)
-val common_codes : int array -> int array -> int [@@zero_alloc]
+val common_codes : int array -> int array -> int
+[@@zero_alloc]
 
 (** Per-component scores of one name pair, kept for explanations. *)
 module Components : sig
@@ -68,9 +64,9 @@ module Components : sig
     ; compact : int (** {!edit_similarity} on the separator-free strings *)
     ; token_set : int (** {!token_alignment} over the shorter name's token count *)
     ; token_cover : int
-    (** {!token_alignment} over the longer name's token count, not counting its
-        unmatched patronymics (["-ovich"], ["-evna"], ["-yovych"]): a customer often
-        leaves the patronymic out *)
+    (** {!token_alignment} over the longer name's token count, not counting its unmatched
+        patronymics (["-ovich"], ["-evna"], ["-yovych"]): a customer often leaves the
+        patronymic out *)
     ; phonetic : int (** shared Soundex codes over the longer name's token count *)
     ; skeleton : int
     (** Jaro-Winkler on consonant skeletons, when either side was written in Arabic
@@ -91,8 +87,8 @@ module Weights : sig
     }
   [@@deriving sexp, compare, equal, bin_io]
 
-  (** [{ token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930;
-      token_floor = 850 }], tuned on the labelled set in [test/]. *)
+  (** [{ token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930; token_floor = 850 }],
+      tuned on the labelled set in [test/]. *)
   val default : t
 end
 
@@ -115,9 +111,9 @@ module Prepared : sig
   val of_key : Normalize.Key.t -> t
 end
 
-(** The name score of two prepared keys: the maximum of [edit], [compact], the token
-    score ([token_set * share + token_cover * (1000 - share)]), the capped phonetic score
-    and the capped skeleton score. Symmetric in its two arguments. *)
+(** The name score of two prepared keys: the maximum of [edit], [compact], the token score
+    ([token_set * share + token_cover * (1000 - share)]), the capped phonetic score and
+    the capped skeleton score. Symmetric in its two arguments. *)
 val score : Scratch.t -> Weights.t -> Prepared.t -> Prepared.t -> int
 [@@zero_alloc]
 

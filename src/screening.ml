@@ -71,10 +71,17 @@ module Result = struct
     }
   [@@deriving compare, equal, sexp]
 
-  let hit_keys t = String.Set.of_list (List.map (Decision.hits t.decision) ~f:Hit.entry_key)
+  let hit_keys t =
+    String.Set.of_list (List.map (Decision.hits t.decision) ~f:Hit.entry_key)
+  ;;
 end
 
-let adjust (policy : Policy.t) (subject : Subject.t) (entry : Entry.t) (name : Entry.Name.t) =
+let adjust
+  (policy : Policy.t)
+  (subject : Subject.t)
+  (entry : Entry.t)
+  (name : Entry.Name.t)
+  =
   let a = policy.adjustments in
   let reasons = ref []
   and delta = ref 0 in
@@ -101,9 +108,11 @@ let adjust (policy : Policy.t) (subject : Subject.t) (entry : Entry.t) (name : E
    | s, e ->
      (match List.find s ~f:(fun c -> List.mem e c ~equal:String.equal) with
       | Some c -> add (Nationality_match c) a.nationality_match
-      | None -> add (Nationality_mismatch { subject = s; entry = e }) a.nationality_mismatch));
+      | None ->
+        add (Nationality_mismatch { subject = s; entry = e }) a.nationality_mismatch));
   if not (Party_type.compatible subject.party entry.party)
-  then add (Type_mismatch { subject = subject.party; entry = entry.party }) a.type_mismatch;
+  then
+    add (Type_mismatch { subject = subject.party; entry = entry.party }) a.type_mismatch;
   (match name.kind with
    | Weak_alias -> add Weak_alias a.weak_alias
    | Primary | Alias | Former -> ());
@@ -256,8 +265,8 @@ let rescreen ?scratch ~policy ~before ~after ~at subjects =
     | Some s -> s
     | None -> Match.Scratch.create ()
   in
-  (* Several snapshots of one list (an OFAC file in two formats, say) are compared as
-     one: their entries together. *)
+  (* Several snapshots of one list (an OFAC file in two formats, say) are compared as one:
+     their entries together. *)
   let by_list lists =
     List.map (Lists.snapshots lists) ~f:(fun (s : Snapshot.t) -> s.version.list, s)
     |> List.Assoc.sort_and_group ~compare:List_id.compare
@@ -275,9 +284,7 @@ let rescreen ?scratch ~policy ~before ~after ~at subjects =
   in
   let%bind b = by_list before in
   let%bind a = by_list after in
-  let ids =
-    List.map (b @ a) ~f:fst |> List.dedup_and_sort ~compare:List_id.compare
-  in
+  let ids = List.map (b @ a) ~f:fst |> List.dedup_and_sort ~compare:List_id.compare in
   let%bind diff =
     List.map ids ~f:(fun list ->
       let empty version = Snapshot.create ~list ~version [] in
@@ -313,7 +320,8 @@ let rescreen ?scratch ~policy ~before ~after ~at subjects =
   let%map delta = Lists.create delta in
   let delta_empty = Lists.entry_count delta = 0 in
   let affected (subject : Subject.t) previous =
-    List.exists (Decision.hits previous) ~f:(fun h -> Set.mem touched_keys (Hit.entry_key h))
+    List.exists (Decision.hits previous) ~f:(fun h ->
+      Set.mem touched_keys (Hit.entry_key h))
     || ((not delta_empty)
         && not (Hashtbl.is_empty (candidates scratch policy delta subject)))
   in
@@ -326,16 +334,16 @@ let rescreen ?scratch ~policy ~before ~after ~at subjects =
     then incr unchanged
     else (
       incr rescreened;
-      let result = screen ~scratch ~policy ~lists:after ~context:List_update ~at subject in
+      let result =
+        screen ~scratch ~policy ~lists:after ~context:List_update ~at subject
+      in
       let old_keys =
         String.Set.of_list (List.map (Decision.hits previous) ~f:Hit.entry_key)
       in
       let change = { Rescreen.subject; previous; result } in
       if not (Set.is_empty (Set.diff (Result.hit_keys result) old_keys))
       then newly_hit := change :: !newly_hit
-      else if
-        (not (Set.is_empty old_keys))
-        && [%equal: Decision.t] result.decision Clear
+      else if (not (Set.is_empty old_keys)) && [%equal: Decision.t] result.decision Clear
       then cleared := change :: !cleared));
   { Rescreen.diff
   ; newly_hit = List.rev !newly_hit

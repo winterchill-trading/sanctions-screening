@@ -87,7 +87,10 @@ let[@zero_alloc] jaro_winkler (scratch : Scratch.t) a b =
       else (
         let prefix = ref 0 in
         let limit = Int.min 4 (Int.min la lb) in
-        while !prefix < limit && Char.equal (String.unsafe_get a !prefix) (String.unsafe_get b !prefix) do
+        while
+          !prefix < limit
+          && Char.equal (String.unsafe_get a !prefix) (String.unsafe_get b !prefix)
+        do
           incr prefix
         done;
         jaro + div_round (!prefix * (1000 - jaro)) 10)))
@@ -198,15 +201,11 @@ let[@zero_alloc] soundex w =
 let soundex_to_string code =
   if code = 0
   then ""
-  else
-    sprintf
-      "%c%03d"
-      (Char.uppercase (Char.of_int_exn (code / 1000)))
-      (code mod 1000)
+  else sprintf "%c%03d" (Char.uppercase (Char.of_int_exn (code / 1000))) (code mod 1000)
 ;;
 
-(* Orders two token arrays so the pairing below does not depend on argument order:
-   fewer tokens first, ties broken by comparing the tokens. *)
+(* Orders two token arrays so the pairing below does not depend on argument order: fewer
+   tokens first, ties broken by comparing the tokens. *)
 let[@zero_alloc] first_is_short (a : string array) (b : string array) =
   let na = Array.length a
   and nb = Array.length b in
@@ -222,8 +221,8 @@ let[@zero_alloc] first_is_short (a : string array) (b : string array) =
     !r <= 0)
 ;;
 
-(* Patronymics ("-ovich", "-evna", Ukrainian "-yovych") are often left out of a name
-   the customer gives; an unmatched one should not count against the match. *)
+(* Patronymics ("-ovich", "-evna", Ukrainian "-yovych") are often left out of a name the
+   customer gives; an unmatched one should not count against the match. *)
 let[@zero_alloc] ends_with (w : string) (suffix : string) =
   let n = String.length w
   and k = String.length suffix in
@@ -288,7 +287,8 @@ let[@zero_alloc] token_alignment_packed (scratch : Scratch.t) ~token_floor a b =
   if Array.length short < Array.length long
   then
     for j = 0 to nl - 1 do
-      if Char.equal (Bytes.unsafe_get used j) '\000' && is_patronymic (Array.unsafe_get long j)
+      if Char.equal (Bytes.unsafe_get used j) '\000'
+         && is_patronymic (Array.unsafe_get long j)
       then incr skipped
     done;
   (* Sum and skipped count packed in one int, so nothing is allocated. *)
@@ -376,7 +376,9 @@ let components scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t) =
   and nb = Array.length kb.tokens in
   let shorter = Int.min na nb
   and longer = Int.max na nb in
-  let packed = token_alignment_packed scratch ~token_floor:w.token_floor ka.tokens kb.tokens in
+  let packed =
+    token_alignment_packed scratch ~token_floor:w.token_floor ka.tokens kb.tokens
+  in
   let sum = packed lsr 8
   and cover_den = longer - (packed land 255) in
   { Components.jaro_winkler = jaro_winkler scratch ka.sorted kb.sorted
@@ -434,10 +436,7 @@ let[@zero_alloc] score scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t)
       (div_round
          ((token_set * w.token_set_share) + (token_cover * (1000 - w.token_set_share)))
          1000);
-    keep
-      (Int.min
-         w.phonetic_cap
-         (div_round (1000 * common_codes a.codes b.codes) longer)));
+    keep (Int.min w.phonetic_cap (div_round (1000 * common_codes a.codes b.codes) longer)));
   if ka.abjad || kb.abjad
   then keep (Int.min w.skeleton_cap (jaro_winkler scratch ka.skeleton kb.skeleton));
   !best

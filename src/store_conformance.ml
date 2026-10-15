@@ -89,21 +89,34 @@ module Make (S : Store.S) = struct
     show "latest result is the later one" r ~f:(fun o ->
       Bool.to_string ([%equal: Screening.Result.t option] o (Some later)));
     let%bind r = S.latest_result t ~subject_id:"c-9" in
-    show "latest result of unknown subject" r ~f:(fun o -> Bool.to_string (Option.is_none o));
+    show "latest result of unknown subject" r ~f:(fun o ->
+      Bool.to_string (Option.is_none o));
     (* Cases *)
-    let case, opened = Case.open_ ~id:"case-1" ~at:(at "2026-10-15 12:00:00Z") first |> ok_exn in
-    let%bind r = S.append_case_events t ~idempotency_key:"open-1" ~expected_version:0 opened in
+    let case, opened =
+      Case.open_ ~id:"case-1" ~at:(at "2026-10-15 12:00:00Z") first |> ok_exn
+    in
+    let%bind r =
+      S.append_case_events t ~idempotency_key:"open-1" ~expected_version:0 opened
+    in
     show "open case" r ~f:write;
-    let%bind r = S.append_case_events t ~idempotency_key:"open-1" ~expected_version:0 opened in
+    let%bind r =
+      S.append_case_events t ~idempotency_key:"open-1" ~expected_version:0 opened
+    in
     show "open case again" r ~f:write;
-    let%bind r = S.append_case_events t ~idempotency_key:"open-1b" ~expected_version:0 opened in
+    let%bind r =
+      S.append_case_events t ~idempotency_key:"open-1b" ~expected_version:0 opened
+    in
     show "open case with another key" r ~f:write;
     let analyst = Case.Actor.Analyst "a" in
     let now = at "2026-10-15 12:05:00Z" in
     let case, assigned = Case.apply case ~actor:analyst ~at:now (Assign "a") |> ok_exn in
-    let%bind r = S.append_case_events t ~idempotency_key:"cmd-1" ~expected_version:1 assigned in
+    let%bind r =
+      S.append_case_events t ~idempotency_key:"cmd-1" ~expected_version:1 assigned
+    in
     show "assign" r ~f:write;
-    let%bind r = S.append_case_events t ~idempotency_key:"cmd-1x" ~expected_version:1 assigned in
+    let%bind r =
+      S.append_case_events t ~idempotency_key:"cmd-1x" ~expected_version:1 assigned
+    in
     show "assign from a stale version" r ~f:write;
     let%bind r = S.open_case_ids t in
     show "open cases" r ~f:(String.concat ~sep:",");
@@ -120,11 +133,14 @@ module Make (S : Store.S) = struct
     in
     show "decide" r ~f:write;
     let%bind r = S.case_events t ~case_id:"case-1" in
-    show "events" r ~f:(fun es -> String.concat ~sep:"," (List.map es ~f:(fun e -> Int.to_string e.seq)));
+    show "events" r ~f:(fun es ->
+      String.concat ~sep:"," (List.map es ~f:(fun e -> Int.to_string e.seq)));
     let%bind r = Store.find_case (module S) t "case-1" in
-    show "case rebuilt" r ~f:(fun o -> Bool.to_string ([%equal: Case.t option] o (Some case)));
+    show "case rebuilt" r ~f:(fun o ->
+      Bool.to_string ([%equal: Case.t option] o (Some case)));
     let%bind r = S.open_case_ids t in
-    show "open cases after closing" r ~f:(fun ids -> sprintf "[%s]" (String.concat ~sep:"," ids));
+    show "open cases after closing" r ~f:(fun ids ->
+      sprintf "[%s]" (String.concat ~sep:"," ids));
     let%map r = Store.find_case (module S) t "case-9" in
     show "unknown case" r ~f:(fun o -> Bool.to_string (Option.is_none o))
   ;;

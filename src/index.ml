@@ -57,7 +57,9 @@ let create entry_list =
       List.iter (Normalize.keys ~party:e.party n.name) ~f:(fun key ->
         if not (Normalize.Key.is_empty key)
         then
-          Queue.enqueue names { Name.entry = i; name = n; prepared = Match.Prepared.of_key key })));
+          Queue.enqueue
+            names
+            { Name.entry = i; name = n; prepared = Match.Prepared.of_key key })));
   let names = Queue.to_array names in
   let lists = Int.Table.create () in
   let abjad_lists = Int.Table.create () in
@@ -101,7 +103,8 @@ let stats t =
     { entries = (Array.length t.entries : int)
     ; names = (Array.length t.names : int)
     ; trigrams = (Hashtbl.length t.postings : int)
-    ; longest_posting = (List.max_elt lengths ~compare:Int.compare |> Option.value ~default:0 : int)
+    ; longest_posting =
+        (List.max_elt lengths ~compare:Int.compare |> Option.value ~default:0 : int)
     ; postings_total = (List.sum (module Int) lengths ~f:Fn.id : int)
     }]
 ;;

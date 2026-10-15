@@ -15,7 +15,9 @@ let create ~list ~version ?published entries =
       Or_error.error_s
         [%message "entry from another list" ~id:e.id ~list:(e.list : List_id.t)]
   in
-  let entries = List.sort entries ~compare:(fun (a : Entry.t) b -> String.compare a.id b.id) in
+  let entries =
+    List.sort entries ~compare:(fun (a : Entry.t) b -> String.compare a.id b.id)
+  in
   let%bind () =
     match
       List.find_consecutive_duplicate entries ~equal:(fun (a : Entry.t) b ->
@@ -47,7 +49,9 @@ module Diff = struct
     }
   [@@deriving sexp_of]
 
-  let is_empty t = List.is_empty t.added && List.is_empty t.removed && List.is_empty t.changed
+  let is_empty t =
+    List.is_empty t.added && List.is_empty t.removed && List.is_empty t.changed
+  ;;
 end
 
 let diff ~before ~after =
@@ -67,5 +71,8 @@ let diff ~before ~after =
       | `Right e -> { acc with added = e :: acc.added }
       | `Unequal (x, y) -> { acc with changed = (x, y) :: acc.changed })
   |> fun (d : Diff.t) ->
-  { Diff.added = List.rev d.added; removed = List.rev d.removed; changed = List.rev d.changed }
+  { Diff.added = List.rev d.added
+  ; removed = List.rev d.removed
+  ; changed = List.rev d.changed
+  }
 ;;

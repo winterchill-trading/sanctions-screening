@@ -3,8 +3,8 @@
     alt_num, type, name, remarks). [-0-] marks an empty field.
 
     Dates of birth, nationality and citizenship come from the remarks
-    (["DOB 12 Mar 1961; alt. DOB 1962; nationality Russia; citizen Belarus"]), weak aliases
-    from quoted remarks (["a.k.a. 'ABU FATHI'"]). Person names published as
+    (["DOB 12 Mar 1961; alt. DOB 1962; nationality Russia; citizen Belarus"]), weak
+    aliases from quoted remarks (["a.k.a. 'ABU FATHI'"]). Person names published as
     ["SURNAME, Given"] are stored as ["Given SURNAME"]. *)
 
 open! Core

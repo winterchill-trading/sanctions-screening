@@ -1,6 +1,6 @@
 (** A small XML reader for the list files: elements, attributes, text, CDATA, comments,
-    processing instructions and the five predefined plus numeric character references.
-    No DTDs. Namespace prefixes are dropped from names ([ns:Entry] reads as [Entry]).
+    processing instructions and the five predefined plus numeric character references. No
+    DTDs. Namespace prefixes are dropped from names ([ns:Entry] reads as [Entry]).
 
     {!iter_elements} streams: it builds the tree of one element at a time at a chosen
     depth, so a 130 MB file never sits in memory as one tree. *)
@@ -20,8 +20,8 @@ and node =
 (** The whole document's root element. *)
 val parse : string -> t Or_error.t
 
-(** Calls [f] with each element at [depth] (the root is depth 0) as a complete tree,
-    and [on_text] is not needed: text outside those elements is ignored. *)
+(** Calls [f] with each element at [depth] (the root is depth 0) as a complete tree, and
+    [on_text] is not needed: text outside those elements is ignored. *)
 val iter_elements : string -> depth:int -> f:(t -> unit) -> unit Or_error.t
 
 val attr : t -> string -> string option

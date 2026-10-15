@@ -58,8 +58,8 @@ let decode_entities s =
     Buffer.contents buf)
 ;;
 
-(* A pull parser over the whole string. Events are delivered to [on_open], [on_close]
-   and [on_text]; callers build trees from them. *)
+(* A pull parser over the whole string. Events are delivered to [on_open], [on_close] and
+   [on_text]; callers build trees from them. *)
 let scan text ~on_open ~on_close ~on_text =
   let n = String.length text in
   let pos = ref 0 in
@@ -135,7 +135,8 @@ let scan text ~on_open ~on_close ~on_text =
             incr pos;
             skip_spaces ();
             let q = text.[!pos] in
-            if not (Char.equal q '"' || Char.equal q '\'') then raise (Bad "expected quote");
+            if not (Char.equal q '"' || Char.equal q '\'')
+            then raise (Bad "expected quote");
             incr pos;
             let start = !pos in
             let stop =
@@ -143,7 +144,9 @@ let scan text ~on_open ~on_close ~on_text =
               | Some i -> i
               | None -> raise (Bad "unterminated attribute")
             in
-            attrs := (an, decode_entities (String.sub text ~pos:start ~len:(stop - start))) :: !attrs;
+            attrs
+            := (an, decode_entities (String.sub text ~pos:start ~len:(stop - start)))
+               :: !attrs;
             pos := stop + 1
         done)
     else (
@@ -157,8 +160,8 @@ let scan text ~on_open ~on_close ~on_text =
   done
 ;;
 
-(* Builds trees for elements at depth >= [depth]; [emit] receives each finished element
-   at exactly [depth]. *)
+(* Builds trees for elements at depth >= [depth]; [emit] receives each finished element at
+   exactly [depth]. *)
 let run text ~depth ~emit =
   let level = ref 0 in
   (* Stack of open elements being built: name, attrs, reversed children. *)

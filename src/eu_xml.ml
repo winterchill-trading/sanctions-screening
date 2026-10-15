@@ -2,8 +2,8 @@ open! Core
 
 let parse text =
   let open Or_error.Let_syntax in
-  (* The root's attributes need the root element; read them from the opening tag
-     instead of building the whole document. *)
+  (* The root's attributes need the root element; read them from the opening tag instead
+     of building the whole document. *)
   let version =
     match String.substr_index text ~pattern:"generationDate=\"" with
     | Some i -> String.sub text ~pos:(i + 16) ~len:10
@@ -18,7 +18,10 @@ let parse text =
     Queue.to_list entities
     |> List.map ~f:(fun el ->
       let party : Party_type.t =
-        match Option.map (Xml.child el "subjectType") ~f:(fun s -> Xml.attr_or_empty s "classificationCode") with
+        match
+          Option.map (Xml.child el "subjectType") ~f:(fun s ->
+            Xml.attr_or_empty s "classificationCode")
+        with
         | Some "P" -> Person
         | Some "E" -> Entity
         | _ -> Unknown
@@ -49,7 +52,10 @@ let parse text =
         Xml.children el "birthdate"
         |> List.filter_map ~f:(fun b ->
           let circa = String.equal (Xml.attr_or_empty b "circa") "true" in
-          match Xml.attr_or_empty b "birthdate", Int.of_string_opt (Xml.attr_or_empty b "year") with
+          match
+            ( Xml.attr_or_empty b "birthdate"
+            , Int.of_string_opt (Xml.attr_or_empty b "year") )
+          with
           | d, _ when (not (String.is_empty d)) && not circa ->
             Option.try_with (fun () -> Dob.Day (Date.of_string d))
           | _, Some y when circa -> Some (Dob.Years { from = y - 1; until = y + 1 })
@@ -65,11 +71,13 @@ let parse text =
         ~names
         ~dobs
         ~nationalities:
-          (List.map (Xml.children el "citizenship") ~f:(fun c -> Xml.attr_or_empty c "countryIso2Code"))
+          (List.map (Xml.children el "citizenship") ~f:(fun c ->
+             Xml.attr_or_empty c "countryIso2Code"))
         ~programmes:(List.map regulations ~f:(fun r -> Xml.attr_or_empty r "programme"))
         ?listed_on:
           (List.filter_map regulations ~f:(fun r ->
-             Option.try_with (fun () -> Date.of_string (Xml.attr_or_empty r "publicationDate")))
+             Option.try_with (fun () ->
+               Date.of_string (Xml.attr_or_empty r "publicationDate")))
            |> List.min_elt ~compare:Date.compare)
         ())
     |> Or_error.combine_errors

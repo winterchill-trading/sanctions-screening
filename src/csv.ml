@@ -1,7 +1,9 @@
 open! Core
 
 let parse ?(sep = ',') text =
-  let text = Option.value (String.chop_prefix text ~prefix:"\xEF\xBB\xBF") ~default:text in
+  let text =
+    Option.value (String.chop_prefix text ~prefix:"\xEF\xBB\xBF") ~default:text
+  in
   let n = String.length text in
   let rows = ref [] in
   let row = ref [] in

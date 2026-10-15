@@ -8,8 +8,8 @@
     00 for unknown parts; [Nationality] may list several as ["(1) Russia (2) Belarus"].
     [Regime] gives the programmes and [Listed On] the listing date.
 
-    OFSI closed this list on 28 January 2026; the UK Sanctions List replaced it. The parser
-    reads archived files and any list kept in this format. *)
+    OFSI closed this list on 28 January 2026; the UK Sanctions List replaced it. The
+    parser reads archived files and any list kept in this format. *)
 
 open! Core
 

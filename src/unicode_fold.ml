@@ -23,7 +23,9 @@ let decompose cp ~f =
     if i < 0
     then f cp
     else
-      for j = Unicode_data.decomp_offsets.(i) to Unicode_data.decomp_offsets.(i + 1) - 1 do
+      for
+        j = Unicode_data.decomp_offsets.(i) to Unicode_data.decomp_offsets.(i + 1) - 1
+      do
         f Unicode_data.decomp_values.(j)
       done)
 ;;
@@ -50,7 +52,10 @@ let[@zero_alloc] in_ranges (r : int array) cp =
 ;;
 
 let[@zero_alloc] is_mark cp = cp >= 0x300 && in_ranges Unicode_data.mark_ranges cp
-let[@zero_alloc] is_ignorable cp = cp >= 0xAD && in_ranges Unicode_data.ignorable_ranges cp
+
+let[@zero_alloc] is_ignorable cp =
+  cp >= 0xAD && in_ranges Unicode_data.ignorable_ranges cp
+;;
 
 let[@zero_alloc] is_letter_or_digit cp =
   if cp < 0x80

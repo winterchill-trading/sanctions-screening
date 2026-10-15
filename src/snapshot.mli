@@ -17,8 +17,8 @@ val create
   -> Entry.t list
   -> t Or_error.t
 
-(** Entries added, removed and changed from [before] to [after] (by id; a changed entry
-    is given in its new form). *)
+(** Entries added, removed and changed from [before] to [after] (by id; a changed entry is
+    given in its new form). *)
 module Diff : sig
   type t =
     { added : Entry.t list

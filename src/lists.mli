@@ -4,8 +4,8 @@ open! Core
 
 type t
 
-(** Fails when two snapshots share a list and an entry id. Build once per list update
-    and share it; building indexes every name. *)
+(** Fails when two snapshots share a list and an entry id. Build once per list update and
+    share it; building indexes every name. *)
 val create : Snapshot.t list -> t Or_error.t
 
 val snapshots : t -> Snapshot.t list

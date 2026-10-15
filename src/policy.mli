@@ -47,15 +47,15 @@ type t =
 [@@deriving sexp, compare, equal, bin_io]
 
 (** For onboarding: [name_threshold] 850, date tolerance 1 year, no auto-confirm,
-    [high_priority_at] 920, 20 hits, prefilter 200. The values were chosen on the
-    labelled set in [test/] (see the README for the numbers). *)
+    [high_priority_at] 920, 20 hits, prefilter 200. The values were chosen on the labelled
+    set in [test/] (see the README for the numbers). *)
 val default : t
 
 (** For payment counterparties, where only a name (and sometimes a country) is known:
-    {!default} with [name_threshold] 870, so that common partial names raise fewer
-    alerts on high volumes. *)
+    {!default} with [name_threshold] 870, so that common partial names raise fewer alerts
+    on high volumes. *)
 val payments : t
 
-(** MD5 of the bin_prot encoding, hex: stored with each result so a decision can be
-    traced to the exact settings. *)
+(** MD5 of the bin_prot encoding, hex: stored with each result so a decision can be traced
+    to the exact settings. *)
 val digest : t -> string
