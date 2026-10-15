@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Sanitised excerpt in the EU consolidated list format (FSF 1.1). Every party is invented. -->
+<export xmlns="http://eu.europa.ec/fpi/fsd/export" generationDate="2026-10-15T12:10:34.160+02:00" globalFileId="999999">
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9001.01" logicalId="7001">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2022-02-23" entryIntoForceDate="2022-02-23" numberTitle="0000/0000 (OJ L000)" programme="RUS" logicalId="107001">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Oleg Ivanovich Paramonov" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80001"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Олег Иванович Парамонов" function="" gender="" title="" nameLanguage="RU" strong="true" regulationLanguage="en" logicalId="80002"/>
+        <citizenship region="" countryIso2Code="RU" countryDescription="" regulationLanguage="en" logicalId="80003"/>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="1961-03-12" year="1961" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80004"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9002.02" logicalId="7002">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2022-03-15" entryIntoForceDate="2022-03-15" numberTitle="0000/0000 (OJ L000)" programme="RUS" logicalId="107002">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Svetlana Petrovna Zhuravina" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80005"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Svetlana Zhuravina" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80006"/>
+        <citizenship region="" countryIso2Code="RU" countryDescription="" regulationLanguage="en" logicalId="80007"/>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="1980-01-30" year="1980" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80008"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9003.03" logicalId="7003">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2022-06-03" entryIntoForceDate="2022-06-03" numberTitle="0000/0000 (OJ L000)" programme="RUS" logicalId="107003">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="enterprise" classificationCode="E"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Obshchestvo s ogranichennoi otvetstvennostiu Severnyi Veter" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80009"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="ООО «Северный ветер»" function="" gender="" title="" nameLanguage="RU" strong="true" regulationLanguage="en" logicalId="80010"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Northern Wind LLC" function="" gender="" title="" nameLanguage="EN" strong="true" regulationLanguage="en" logicalId="80011"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9004.04" logicalId="7004">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2023-02-25" entryIntoForceDate="2023-02-25" numberTitle="0000/0000 (OJ L000)" programme="RUS" logicalId="107004">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="enterprise" classificationCode="E"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Transcaspian Logistics JSC" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80012"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="АО «Транскаспийская логистика»" function="" gender="" title="" nameLanguage="RU" strong="true" regulationLanguage="en" logicalId="80013"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9005.05" logicalId="7005">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2012-05-14" entryIntoForceDate="2012-05-14" numberTitle="0000/0000 (OJ L000)" programme="SYR" logicalId="107005">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Yusuf Haddad Al-Kalbani" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80014"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Abu Yusuf" function="" gender="" title="" nameLanguage="" strong="false" regulationLanguage="en" logicalId="80015"/>
+        <citizenship region="" countryIso2Code="SY" countryDescription="" regulationLanguage="en" logicalId="80016"/>
+        <birthdate circa="true" calendarType="GREGORIAN" city="" zipCode="" birthdate="" year="1970" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80017"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9006.06" logicalId="7006">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2013-10-10" entryIntoForceDate="2013-10-10" numberTitle="0000/0000 (OJ L000)" programme="IRN" logicalId="107006">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Hassan Ali Mohammadzadeh Rostami" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80018"/>
+        <citizenship region="" countryIso2Code="IR" countryDescription="" regulationLanguage="en" logicalId="80019"/>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="" year="1960" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80020"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9007.07" logicalId="7007">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2013-10-10" entryIntoForceDate="2013-10-10" numberTitle="0000/0000 (OJ L000)" programme="IRN" logicalId="107007">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="enterprise" classificationCode="E"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Kestrel Aviation FZE" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80021"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9008.08" logicalId="7008">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2014-03-17" entryIntoForceDate="2014-03-17" numberTitle="0000/0000 (OJ L000)" programme="UKR" logicalId="107008">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Viktor Andriyovych Pidhoretskyi" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80022"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Віктор Андрійович Підгорецький" function="" gender="" title="" nameLanguage="UK" strong="true" regulationLanguage="en" logicalId="80023"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Viktor Andreevich Podgoretsky" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80024"/>
+        <citizenship region="" countryIso2Code="UA" countryDescription="" regulationLanguage="en" logicalId="80025"/>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="1971-09-21" year="1971" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80026"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9009.09" logicalId="7009">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2014-03-17" entryIntoForceDate="2014-03-17" numberTitle="0000/0000 (OJ L000)" programme="UKR" logicalId="107009">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Nikolai Sergeevich Belovodsky" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80027"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Mykola Serhiyovych Bilovodskyi" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80028"/>
+        <citizenship region="" countryIso2Code="RU" countryDescription="" regulationLanguage="en" logicalId="80029"/>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="1966-08-15" year="1966" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80030"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9010.10" logicalId="7010">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2003-07-07" entryIntoForceDate="2003-07-07" numberTitle="0000/0000 (OJ L000)" programme="TAQA" logicalId="107010">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Mahmoud Fathi Al-Qudsayi" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80031"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="محمود فتحي القدسي" function="" gender="" title="" nameLanguage="AR" strong="true" regulationLanguage="en" logicalId="80032"/>
+        <citizenship region="" countryIso2Code="IQ" countryDescription="" regulationLanguage="en" logicalId="80033"/>
+        <birthdate circa="true" calendarType="GREGORIAN" city="" zipCode="" birthdate="" year="1968" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80034"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9011.11" logicalId="7011">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2021-06-21" entryIntoForceDate="2021-06-21" numberTitle="0000/0000 (OJ L000)" programme="BLR" logicalId="107011">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Aliaksandr Uladzimiravich Shchapatsilnikau" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80035"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Александр Владимирович Щепетильников" function="" gender="" title="" nameLanguage="RU" strong="true" regulationLanguage="en" logicalId="80036"/>
+        <citizenship region="" countryIso2Code="BY" countryDescription="" regulationLanguage="en" logicalId="80037"/>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="1974-11-02" year="1974" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80038"/>
+    </sanctionEntity>
+    <sanctionEntity designationDetails="" unitedNationId="" euReferenceNumber="EU.9012.12" logicalId="7012">
+        <remark>Test fixture.</remark>
+        <regulation regulationType="regulation" organisationType="council" publicationDate="2020-01-01" entryIntoForceDate="2020-01-01" numberTitle="0000/0000 (OJ L000)" programme="GRC-TEST" logicalId="107012">
+            <publicationUrl>https://eur-lex.europa.eu/</publicationUrl>
+        </regulation>
+        <subjectType code="person" classificationCode="P"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Andreas Papathanasoglou" function="" gender="" title="" nameLanguage="" strong="true" regulationLanguage="en" logicalId="80039"/>
+        <nameAlias firstName="" middleName="" lastName="" wholeName="Ανδρέας Παπαθανασόγλου" function="" gender="" title="" nameLanguage="EL" strong="true" regulationLanguage="en" logicalId="80040"/>
+        <citizenship region="" countryIso2Code="CY" countryDescription="" regulationLanguage="en" logicalId="80041"/>
+        <birthdate circa="false" calendarType="GREGORIAN" city="" zipCode="" birthdate="" year="1958" region="" place="" countryIso2Code="" countryDescription="" regulationLanguage="en" logicalId="80042"/>
+    </sanctionEntity>
+</export>
