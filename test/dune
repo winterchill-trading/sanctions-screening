@@ -8,3 +8,8 @@
  (libraries core async async_kernel kyc-core sanctions-screening)
  (preprocess
   (pps ppx_jane)))
+
+(cram
+ (deps
+  %{bin:sanctions-screening}
+  (source_tree %{project_root}/fixtures)))
