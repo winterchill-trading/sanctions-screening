@@ -54,7 +54,7 @@ let default =
   ; confirm = None
   ; high_priority_at = 920
   ; max_hits = 20
-  ; prefilter = 250
+  ; prefilter = 200
   }
 ;;
 

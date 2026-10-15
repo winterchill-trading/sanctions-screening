@@ -47,7 +47,7 @@ type t =
 [@@deriving sexp, compare, equal, bin_io]
 
 (** For onboarding: [name_threshold] 850, date tolerance 1 year, no auto-confirm,
-    [high_priority_at] 920, 20 hits, prefilter 250. The values were chosen on the
+    [high_priority_at] 920, 20 hits, prefilter 200. The values were chosen on the
     labelled set in [test/] (see the README for the numbers). *)
 val default : t
 
