@@ -42,12 +42,13 @@ val soundex : string -> int
 (** Soundex code as text, e.g. ["R163"]. *)
 val soundex_to_string : int -> string
 
-(** Fuzzy token overlap: each token of the shorter name is paired with the most similar
-    unused token of the other with Jaro-Winkler at least [token_threshold]. Returns the
-    number of pairs. *)
-val matched_tokens
+(** Token alignment in the manner of Monge-Elkan: each token of the name with fewer
+    tokens (ties broken by comparing the tokens, so the result does not depend on argument
+    order) is paired with the most similar unused token of the other by Jaro-Winkler;
+    pairs below [token_floor] count 0. Returns the sum of the pairs' similarities. *)
+val token_alignment
   :  Scratch.t
-  -> token_threshold:int
+  -> token_floor:int
   -> string array
   -> string array
   -> int
@@ -59,11 +60,13 @@ val common_codes : int array -> int array -> int [@@zero_alloc]
 (** Per-component scores of one name pair, kept for explanations. *)
 module Components : sig
   type t =
-    { jaro_winkler : int (** on the sorted-token strings *)
+    { jaro_winkler : int
+    (** on the sorted-token strings; reported, not used in the score, because a shared
+        first word lifts unrelated names too much *)
     ; edit : int (** {!edit_similarity} on the sorted-token strings *)
-    ; compact : int (** best of the two on the separator-free strings *)
-    ; token_set : int (** matched tokens over the shorter name's token count *)
-    ; token_cover : int (** matched tokens over the longer name's token count *)
+    ; compact : int (** {!edit_similarity} on the separator-free strings *)
+    ; token_set : int (** {!token_alignment} over the shorter name's token count *)
+    ; token_cover : int (** {!token_alignment} over the longer name's token count *)
     ; phonetic : int (** shared Soundex codes over the longer name's token count *)
     ; skeleton : int
     (** Jaro-Winkler on consonant skeletons, when either side was written in Arabic
@@ -80,12 +83,12 @@ module Weights : sig
     ; phonetic_cap : int
     (** a full phonetic agreement scores at most this, since Soundex alone is weak *)
     ; skeleton_cap : int
-    ; token_threshold : int (** Jaro-Winkler for two tokens to pair up *)
+    ; token_floor : int (** token pairs less similar than this count 0 *)
     }
   [@@deriving sexp, compare, equal, bin_io]
 
   (** [{ token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930;
-      token_threshold = 900 }], tuned on the labelled set in [test/]. *)
+      token_floor = 700 }], tuned on the labelled set in [test/]. *)
   val default : t
 end
 
@@ -108,10 +111,9 @@ module Prepared : sig
   val of_key : Normalize.Key.t -> t
 end
 
-(** The name score of two prepared keys: the maximum of the plain similarity
-    ([max jaro_winkler edit]), [compact], the token score
-    ([token_set * share + token_cover * (1000 - share)]), the capped phonetic score and
-    the capped skeleton score. Symmetric in its two arguments. *)
+(** The name score of two prepared keys: the maximum of [edit], [compact], the token
+    score ([token_set * share + token_cover * (1000 - share)]), the capped phonetic score
+    and the capped skeleton score. Symmetric in its two arguments. *)
 val score : Scratch.t -> Weights.t -> Prepared.t -> Prepared.t -> int
 [@@zero_alloc]
 

@@ -85,35 +85,35 @@ let%expect_test "explained name scores" =
   show "Robert Brown" "Rupert Green";
   [%expect {|
     John Smith | SMITH, John
-    ((score 1000) (best jaro_winkler)
+    ((score 1000) (best edit)
      (components
-      ((jaro_winkler 1000) (edit 1000) (compact 481) (token_set 1000)
+      ((jaro_winkler 1000) (edit 1000) (compact 111) (token_set 1000)
        (token_cover 1000) (phonetic 1000) (skeleton 0))))
     John Smith | John William Smith
-    ((score 911) (best jaro_winkler)
+    ((score 867) (best tokens)
      (components
-      ((jaro_winkler 911) (edit 556) (compact 890) (token_set 1000)
+      ((jaro_winkler 911) (edit 556) (compact 562) (token_set 1000)
        (token_cover 667) (phonetic 667) (skeleton 0))))
     Jon Smyth | John Smith
-    ((score 917) (best jaro_winkler)
+    ((score 914) (best tokens)
      (components
-      ((jaro_winkler 917) (edit 800) (compact 907) (token_set 500)
-       (token_cover 500) (phonetic 1000) (skeleton 0))))
+      ((jaro_winkler 917) (edit 800) (compact 778) (token_set 914)
+       (token_cover 914) (phonetic 1000) (skeleton 0))))
     Muhammad Abdullah | محمد عبد الله
     ((score 930) (best skeleton)
      (components
-      ((jaro_winkler 788) (edit 412) (compact 827) (token_set 0) (token_cover 0)
-       (phonetic 0) (skeleton 944))))
+      ((jaro_winkler 788) (edit 412) (compact 562) (token_set 744)
+       (token_cover 496) (phonetic 0) (skeleton 944))))
     Northwind Trading Ltd | Northwind Trading
-    ((score 1000) (best jaro_winkler)
+    ((score 1000) (best edit)
      (components
       ((jaro_winkler 1000) (edit 1000) (compact 1000) (token_set 1000)
        (token_cover 1000) (phonetic 1000) (skeleton 0))))
     Robert Brown | Rupert Green
-    ((score 722) (best jaro_winkler)
+    ((score 583) (best edit)
      (components
-      ((jaro_winkler 722) (edit 583) (compact 697) (token_set 0) (token_cover 0)
-       (phonetic 500) (skeleton 0))))
+      ((jaro_winkler 722) (edit 583) (compact 545) (token_set 400)
+       (token_cover 400) (phonetic 500) (skeleton 0))))
     |}]
 ;;
 

@@ -205,14 +205,31 @@ let soundex_to_string code =
       (code mod 1000)
 ;;
 
-let[@zero_alloc] matched_tokens (scratch : Scratch.t) ~token_threshold a b =
-  let short, long = if Array.length a <= Array.length b then a, b else b, a in
+(* Orders two token arrays so the pairing below does not depend on argument order:
+   fewer tokens first, ties broken by comparing the tokens. *)
+let[@zero_alloc] first_is_short (a : string array) (b : string array) =
+  let na = Array.length a
+  and nb = Array.length b in
+  if na <> nb
+  then na < nb
+  else (
+    let r = ref 0
+    and i = ref 0 in
+    while !r = 0 && !i < na do
+      r := String.compare (Array.unsafe_get a !i) (Array.unsafe_get b !i);
+      incr i
+    done;
+    !r <= 0)
+;;
+
+let[@zero_alloc] token_alignment (scratch : Scratch.t) ~token_floor a b =
+  let short, long = if first_is_short a b then a, b else b, a in
   let nl = Int.min (Array.length long) Scratch.max_length in
   let used = scratch.used in
   for i = 0 to nl - 1 do
     Bytes.unsafe_set used i '\000'
   done;
-  let pairs = ref 0 in
+  let total = ref 0 in
   for i = 0 to Int.min (Array.length short) Scratch.max_length - 1 do
     let t = Array.unsafe_get short i in
     let best = ref (-1)
@@ -221,17 +238,17 @@ let[@zero_alloc] matched_tokens (scratch : Scratch.t) ~token_threshold a b =
       if Char.equal (Bytes.unsafe_get used j) '\000'
       then (
         let s = jaro_winkler scratch t (Array.unsafe_get long j) in
-        if s >= token_threshold && s > !best_score
+        if s > !best_score
         then (
           best := j;
           best_score := s))
     done;
-    if !best >= 0
+    if !best >= 0 && !best_score >= token_floor
     then (
       Bytes.unsafe_set used !best '\001';
-      incr pairs)
+      total := !total + !best_score)
   done;
-  !pairs
+  !total
 ;;
 
 let[@zero_alloc] common_codes (a : int array) (b : int array) =
@@ -271,12 +288,12 @@ module Weights = struct
     { token_set_share : int
     ; phonetic_cap : int
     ; skeleton_cap : int
-    ; token_threshold : int
+    ; token_floor : int
     }
   [@@deriving sexp, compare, equal, bin_io]
 
   let default =
-    { token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930; token_threshold = 900 }
+    { token_set_share = 600; phonetic_cap = 880; skeleton_cap = 930; token_floor = 700 }
   ;;
 end
 
@@ -302,39 +319,25 @@ module Prepared = struct
   ;;
 end
 
-(* The components, computed without allocating; [explain] boxes them for a hit. *)
-let[@inline] components scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t) =
+(* The components, boxed for an explanation; [score] computes the same maximum without
+   allocating. *)
+let components scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t) =
   let ka = a.key
   and kb = b.key in
-  let jw = jaro_winkler scratch ka.sorted kb.sorted in
-  let ed = edit_similarity scratch ka.sorted kb.sorted in
-  let compact =
-    Int.max
-      (jaro_winkler scratch ka.compact kb.compact)
-      (edit_similarity scratch ka.compact kb.compact)
-  in
   let na = Array.length ka.tokens
   and nb = Array.length kb.tokens in
   let shorter = Int.min na nb
   and longer = Int.max na nb in
-  let pairs =
-    matched_tokens scratch ~token_threshold:w.token_threshold ka.tokens kb.tokens
-  in
-  let token_set = if shorter = 0 then 0 else div_round (1000 * pairs) shorter in
-  let token_cover = if longer = 0 then 0 else div_round (1000 * pairs) longer in
-  let phonetic =
-    if longer = 0 then 0 else div_round (1000 * common_codes a.codes b.codes) longer
-  in
-  let skeleton =
-    if ka.abjad || kb.abjad then jaro_winkler scratch ka.skeleton kb.skeleton else 0
-  in
-  { Components.jaro_winkler = jw
-  ; edit = ed
-  ; compact
-  ; token_set
-  ; token_cover
-  ; phonetic
-  ; skeleton
+  let sum = token_alignment scratch ~token_floor:w.token_floor ka.tokens kb.tokens in
+  { Components.jaro_winkler = jaro_winkler scratch ka.sorted kb.sorted
+  ; edit = edit_similarity scratch ka.sorted kb.sorted
+  ; compact = edit_similarity scratch ka.compact kb.compact
+  ; token_set = (if shorter = 0 then 0 else div_round sum shorter)
+  ; token_cover = (if longer = 0 then 0 else div_round sum longer)
+  ; phonetic =
+      (if longer = 0 then 0 else div_round (1000 * common_codes a.codes b.codes) longer)
+  ; skeleton =
+      (if ka.abjad || kb.abjad then jaro_winkler scratch ka.skeleton kb.skeleton else 0)
   }
 ;;
 
@@ -345,8 +348,7 @@ let best_of (w : Weights.t) (c : Components.t) =
       1000
   in
   let candidates =
-    [ "jaro_winkler", c.jaro_winkler
-    ; "edit", c.edit
+    [ "edit", c.edit
     ; "compact", c.compact
     ; "tokens", token
     ; "phonetic", Int.min c.phonetic w.phonetic_cap
@@ -363,10 +365,8 @@ let best_of (w : Weights.t) (c : Components.t) =
 let[@zero_alloc] score scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t) =
   let ka = a.key
   and kb = b.key in
-  let best = ref (jaro_winkler scratch ka.sorted kb.sorted) in
+  let best = ref (edit_similarity scratch ka.sorted kb.sorted) in
   let keep s = if s > !best then best := s in
-  keep (edit_similarity scratch ka.sorted kb.sorted);
-  keep (jaro_winkler scratch ka.compact kb.compact);
   keep (edit_similarity scratch ka.compact kb.compact);
   let na = Array.length ka.tokens
   and nb = Array.length kb.tokens in
@@ -374,11 +374,9 @@ let[@zero_alloc] score scratch (w : Weights.t) (a : Prepared.t) (b : Prepared.t)
   and longer = Int.max na nb in
   if longer > 0
   then (
-    let pairs =
-      matched_tokens scratch ~token_threshold:w.token_threshold ka.tokens kb.tokens
-    in
-    let token_set = if shorter = 0 then 0 else div_round (1000 * pairs) shorter in
-    let token_cover = div_round (1000 * pairs) longer in
+    let sum = token_alignment scratch ~token_floor:w.token_floor ka.tokens kb.tokens in
+    let token_set = if shorter = 0 then 0 else div_round sum shorter in
+    let token_cover = div_round sum longer in
     keep
       (div_round
          ((token_set * w.token_set_share) + (token_cover * (1000 - w.token_set_share)))
