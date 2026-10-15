@@ -8,9 +8,9 @@ let%expect_test "onboarding: exact name with matching date of birth" =
   show (screen (person ~dob:"1961-03-12" ~nationalities:[ "RU" ] "Oleg Paramonov"));
   [%expect {|
     potential match
-      ofac-sdn:9001 1000 High edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov' dob=Exact nationality=RU
-      uk-ofsi:15001 1000 High edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov' dob=Exact nationality=RU
-      eu-consolidated:7001 947 High tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Exact nationality=RU
+      eu-consolidated:7001 1000 High tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Exact nationality=RU
+      ofac-sdn:9001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Exact nationality=RU
+      uk-ofsi:15001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Exact nationality=RU
     |}]
 ;;
 
@@ -18,9 +18,9 @@ let%expect_test "date of birth mismatch lowers priority but keeps the hit" =
   show (screen (person ~dob:"1990-01-01" "Oleg Paramonov"));
   [%expect {|
     potential match
-      ofac-sdn:9001 880 Medium edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov' dob=Mismatch
-      uk-ofsi:15001 880 Medium edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov' dob=Mismatch
-      eu-consolidated:7001 747 Low tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Mismatch
+      eu-consolidated:7001 880 Medium tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Mismatch
+      ofac-sdn:9001 880 Medium tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Mismatch
+      uk-ofsi:15001 880 Medium tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Mismatch
     |}]
 ;;
 
@@ -32,9 +32,9 @@ let%expect_test "transliteration and script variants" =
   show (screen (person "Dmitry Korzhikov"));
   [%expect {|
     potential match
-      ofac-sdn:9001 1000 High edit 'Oleg PARAMONOV' ~ 'Олег Парамонов'
-      uk-ofsi:15001 1000 High edit 'Oleg PARAMONOV' ~ 'Олег Парамонов'
-      eu-consolidated:7001 867 Medium tokens 'Oleg Ivanovich Paramonov' ~ 'Олег Парамонов'
+      eu-consolidated:7001 1000 High tokens 'Oleg Ivanovich Paramonov' ~ 'Олег Парамонов'
+      ofac-sdn:9001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Олег Парамонов'
+      uk-ofsi:15001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Олег Парамонов'
     clear
     potential match
       ofac-sdn:9101 1000 High edit 'يوسف حداد الكلباني' ~ 'يوسف حداد الكلباني'
@@ -44,7 +44,7 @@ let%expect_test "transliteration and script variants" =
       ofac-sdn:9104 994 High tokens 'Andreas PAPATHANASOGLOU' ~ 'Andreas Papathanasoglu'
     potential match
       ofac-sdn:9002 986 High tokens 'Dmitriy KORZHIKOV' ~ 'Dmitry Korzhikov'
-      uk-ofsi:15002 945 High tokens 'Dmitriy KORJIKOV' ~ 'Dmitry Korzhikov'
+      uk-ofsi:15002 967 High tokens 'Dmitri Valerevich KORZHIKOV' ~ 'Dmitry Korzhikov'
     |}]
 ;;
 
@@ -89,9 +89,9 @@ let%expect_test "type mismatch is a reason, not a removal" =
        (Subject.create ~id:"c" ~party:Entity ~names:[ "Svetlana Zhuravina" ] () |> ok_exn));
   [%expect {|
     potential match
-      eu-consolidated:7002 850 Medium edit 'Svetlana Zhuravina' ~ 'Svetlana Zhuravina' type=entity/person
-      uk-ofsi:15006 742 Low tokens 'Svetlana JURAVINA' ~ 'Svetlana Zhuravina' type=entity/person weak-alias
-      ofac-sdn:9007 717 Low tokens 'Svetlana Petrovna ZHURAVINA' ~ 'Svetlana Zhuravina' type=entity/person
+      eu-consolidated:7002 850 Medium tokens 'Svetlana Petrovna Zhuravina' ~ 'Svetlana Zhuravina' type=entity/person
+      ofac-sdn:9007 850 Medium tokens 'Svetlana Petrovna ZHURAVINA' ~ 'Svetlana Zhuravina' type=entity/person
+      uk-ofsi:15006 850 Medium tokens 'Svetlana Petrovna ZHURAVINA' ~ 'Svetlana Zhuravina' type=entity/person
     |}]
 ;;
 
@@ -118,15 +118,15 @@ let%expect_test "results are deterministic and carry their inputs" =
   let kyc = List.take (List.map (Decision.hits a.decision) ~f:Hit.to_kyc) 2 in
   print_s [%sexp (kyc : Kyc_core.Screening.Hit.t list)];
   [%expect {|
-    (true bc4de5e440a8169565c242d20354aa99)
+    (true 18de680d47272eaa4e147ec691491501)
     ((internal-pep 2026-10-01) (eu-consolidated 2026-10-15) (ofac-sdn 2026-10-15)
      (ofac-sdn 2026-10-15) (uk-ofsi 2026-10-15))
-    (((source Ofac_sdn) (list_version 2026-10-15) (entry_id 9001)
-      (matched_name "Oleg PARAMONOV") (score 100)
-      (algorithm sanctions-screening/edit))
-     ((source Uk_sanctions_list) (list_version 2026-10-15) (entry_id 15001)
-      (matched_name "Oleg PARAMONOV") (score 100)
-      (algorithm sanctions-screening/edit)))
+    (((source Eu_fsf) (list_version 2026-10-15) (entry_id 7001)
+      (matched_name "Oleg Ivanovich Paramonov") (score 100)
+      (algorithm sanctions-screening/tokens))
+     ((source Ofac_sdn) (list_version 2026-10-15) (entry_id 9001)
+      (matched_name "Oleg Ivanovich PARAMONOV") (score 100)
+      (algorithm sanctions-screening/tokens)))
     |}]
 ;;
 
@@ -161,5 +161,5 @@ let%expect_test "the index finds what a full scan finds" =
           incr missed;
           printf "MISS %s | %s %d\n" p (Index.name index id).name.name sc))));
   printf "names above 850: %d, missed by the prefilter: %d\n" !total !missed;
-  [%expect {| names above 850: 670, missed by the prefilter: 0 |}]
+  [%expect {| names above 850: 667, missed by the prefilter: 0 |}]
 ;;

@@ -32,7 +32,7 @@ let%expect_test "false positive needs a second analyst" =
   print_s [%sexp (case.status : Case.Status.t)];
   print_s [%sexp (Case.equal (Case.of_events log |> ok_exn) case : bool)];
   [%expect {|
-    (ofac-sdn:9001 uk-ofsi:15001 eu-consolidated:7001)
+    (eu-consolidated:7001 ofac-sdn:9001 uk-ofsi:15001)
     (2 (Assigned analyst-a))
     (refused
      ("only the assigned analyst decides" (case case-1)
@@ -105,7 +105,7 @@ let%expect_test "no case for a clear screening" =
   [%expect {|
     (Error
      ("no case for a clear screening"
-      (screening cde3fc4c238cc039b09d3f968c15ae63)))
+      (screening f160fdc7f1dbea3db4f9cad23b7332cc)))
     |}]
 ;;
 

@@ -11,9 +11,9 @@ The command reads every list file under a directory.
 
   $ sanctions-screening screen -name "Oleg Paramonov" -dob 1961-03-12 -lists ../../fixtures -at "2026-10-15 12:00:00Z"
   potential match
-    ofac-sdn:9001 1000 High edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov' dob=Exact
-    uk-ofsi:15001 1000 High edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov' dob=Exact
-    eu-consolidated:7001 927 High tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Exact
+    eu-consolidated:7001 1000 High tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov' dob=Exact
+    ofac-sdn:9001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Exact
+    uk-ofsi:15001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov' dob=Exact
 
   $ sanctions-screening screen -name "Northwind Maritime Holding" -type entity -payments -explain -lists ../../fixtures
   potential match
@@ -38,6 +38,6 @@ The command reads every list file under a directory.
   internal-pep: 4 added, 0 removed, 0 changed
   rescreened 1, unchanged 1
   newly hit: c-1
-    ofac-sdn:9001 1000 High edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov'
-    uk-ofsi:15001 1000 High edit 'Oleg PARAMONOV' ~ 'Oleg Paramonov'
-    eu-consolidated:7001 867 Medium tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov'
+    eu-consolidated:7001 1000 High tokens 'Oleg Ivanovich Paramonov' ~ 'Oleg Paramonov'
+    ofac-sdn:9001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov'
+    uk-ofsi:15001 1000 High tokens 'Oleg Ivanovich PARAMONOV' ~ 'Oleg Paramonov'
