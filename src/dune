@@ -1,0 +1,6 @@
+(library
+ (name sanctions_screening)
+ (public_name sanctions-screening)
+ (libraries core async_kernel kyc-core)
+ (preprocess
+  (pps ppx_jane)))
