@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Writes src/unicode_data.ml from Python's unicodedata module.
 
-Three tables, all over the Basic Multilingual Plane minus Hangul syllables and CJK
-compatibility ideographs (scripts that Latinisation does not cover):
+Tables over every assigned code point except Hangul syllables and CJK ideographs, whose
+decompositions do not help Latinisation (their letters are still kept as letters):
 
-- the full compatibility decomposition (NFKD) of every code point that has one;
+- the full compatibility decomposition (NFKD) of every code point that has one, including
+  fullwidth forms and the mathematical alphanumerics outside the BMP;
 - the ranges of combining marks (general categories Mn, Mc, Me);
-- the simple lowercase mapping of every code point whose lowercase is one other code point.
+- the simple lowercase mapping of every code point whose lowercase is one other code point;
+- the ranges of letters and digits (categories L* and N*), so the normaliser can keep a
+  letter it cannot Latinise instead of treating it as a separator;
+- the Default_Ignorable_Code_Point ranges (zero-width characters, soft hyphen, bidi
+  controls, variation selectors, tags), which the normaliser deletes.
 
 Run it again when moving to a newer Python to pick up a newer Unicode version:
 
@@ -15,6 +20,17 @@ Run it again when moving to a newer Python to pick up a newer Unicode version:
 
 import sys
 import unicodedata
+
+
+# Default_Ignorable_Code_Point from DerivedCoreProperties.txt (Unicode 16.0); Python's
+# unicodedata does not expose the property.
+IGNORABLE = [
+    (0x00AD, 0x00AD), (0x034F, 0x034F), (0x061C, 0x061C), (0x115F, 0x1160),
+    (0x17B4, 0x17B5), (0x180B, 0x180F), (0x200B, 0x200F), (0x202A, 0x202E),
+    (0x2060, 0x206F), (0x3164, 0x3164), (0xFE00, 0xFE0F), (0xFEFF, 0xFEFF),
+    (0xFFA0, 0xFFA0), (0xFFF0, 0xFFF8), (0x1BCA0, 0x1BCA3), (0x1D173, 0x1D17A),
+    (0xE0000, 0xE0FFF),
+]
 
 
 def wanted(cp):
@@ -26,16 +42,31 @@ def wanted(cp):
         return False
     if 0xF900 <= cp <= 0xFAFF:  # CJK compatibility ideographs
         return False
-    if 0x3000 <= cp <= 0x9FFF:  # CJK, kana, CJK compatibility
+    if 0x3400 <= cp <= 0x9FFF:  # CJK ideographs
+        return False
+    if 0x20000 <= cp:  # CJK extensions, compatibility supplement, tags, private use
         return False
     return True
+
+
+def add_range(ranges, cp):
+    if ranges and ranges[-1][1] == cp - 1:
+        ranges[-1][1] = cp
+    else:
+        ranges.append([cp, cp])
 
 
 def main():
     decomp = []
     lower = []
     marks = []
-    for cp in range(0x80, 0x10000):
+    letters = []
+    for cp in range(0, 0x110000):
+        if 0xD800 <= cp <= 0xDFFF:
+            continue
+        if unicodedata.category(chr(cp))[0] in ("L", "N"):
+            add_range(letters, cp)
+    for cp in range(0x80, 0x110000):
         if not wanted(cp):
             continue
         ch = chr(cp)
@@ -43,10 +74,7 @@ def main():
         if d != ch:
             decomp.append((cp, [ord(c) for c in d]))
         if unicodedata.category(ch) in ("Mn", "Mc", "Me"):
-            if marks and marks[-1][1] == cp - 1:
-                marks[-1][1] = cp
-            else:
-                marks.append([cp, cp])
+            add_range(marks, cp)
         lo = ch.lower()
         if lo != ch and len(lo) == 1:
             lower.append((cp, ord(lo)))
@@ -76,6 +104,12 @@ def main():
     out.write("|]\n\n")
     out.write("let lower_values = [|")
     out.write(";".join("0x%X" % lo for _, lo in lower))
+    out.write("|]\n\n")
+    out.write("let letter_ranges = [|")
+    out.write(";".join("0x%X;0x%X" % (a, b) for a, b in letters))
+    out.write("|]\n\n")
+    out.write("let ignorable_ranges = [|")
+    out.write(";".join("0x%X;0x%X" % (a, b) for a, b in IGNORABLE))
     out.write("|]\n")
 
 

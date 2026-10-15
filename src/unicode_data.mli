@@ -22,3 +22,10 @@ val lower_keys : int array
 
 (** The lowercase of [lower_keys.(i)]. *)
 val lower_values : int array
+
+(** Inclusive ranges of letters and digits (general categories starting with L or N). *)
+val letter_ranges : int array
+
+(** Inclusive ranges of Default_Ignorable_Code_Point (zero-width characters, soft hyphen,
+    bidi controls, variation selectors, tags). *)
+val ignorable_ranges : int array
