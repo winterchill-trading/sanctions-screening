@@ -1,0 +1,15 @@
+(library
+ (name sanctions_screening_pg)
+ (public_name sanctions-screening-pg)
+ (libraries core async sanctions-screening pg-async)
+ (preprocess
+  (pps ppx_jane)))
+
+(rule
+ (targets embedded_migrations.ml)
+ (deps
+  (glob_files %{project_root}/migrations/*.sql))
+ (action
+  (with-stdout-to
+   %{targets}
+   (run gen/gen_migrations.exe %{deps}))))
