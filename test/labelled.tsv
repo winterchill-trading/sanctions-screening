@@ -1,0 +1,132 @@
+# Labelled queries for the precision/recall harness. Columns: query, party type,
+# expected entry keys (comma separated, "-" for none), what the query tests.
+# Every name is invented; positives are spellings of fixture entries, negatives are
+# other people and companies, some sharing words with listed names.
+Oleg Paramonov	person	ofac-sdn:9001,uk-ofsi:15001,eu-consolidated:7001	exact
+PARAMONOV Oleg Ivanovich	person	ofac-sdn:9001,uk-ofsi:15001,eu-consolidated:7001	reordered
+Oleg Paramanov	person	ofac-sdn:9001,uk-ofsi:15001,eu-consolidated:7001	typo
+Олег Парамонов	person	ofac-sdn:9001,uk-ofsi:15001,eu-consolidated:7001	Cyrillic
+O. Paramonov	person	ofac-sdn:9001,uk-ofsi:15001,eu-consolidated:7001	initial
+Dmitry Korzhikov	person	ofac-sdn:9002,uk-ofsi:15002	transliteration
+Dmitrii Korjikov	person	ofac-sdn:9002,uk-ofsi:15002	transliteration
+Дмитрий Коржиков	person	ofac-sdn:9002,uk-ofsi:15002	Cyrillic
+Korzhikov Dmitri Valeryevich	person	ofac-sdn:9002,uk-ofsi:15002	patronymic variant
+Mahmoud Al-Qudsayi	person	ofac-sdn:9003,eu-consolidated:7010	middle name missing
+Mahmud Fathi Qudsayi	person	ofac-sdn:9003,eu-consolidated:7010	article dropped
+Mahmoud Fathi Alqudsayi	person	ofac-sdn:9003,eu-consolidated:7010	joined article
+محمود فتحي القدسي	person	ofac-sdn:9003,eu-consolidated:7010	Arabic script
+Hassan Ali Mohammadzadeh Rostami	person	ofac-sdn:9004,eu-consolidated:7006	exact
+Hasan Ali Mohamadzadeh-Rostami	person	ofac-sdn:9004,eu-consolidated:7006	spelling
+Hassan Rostami	person	ofac-sdn:9004,eu-consolidated:7006	short form
+Juan Carlos Velarde Ostos	person	ofac-sdn:9005,uk-ofsi:15005	exact
+Juan Carlos Velarde	person	ofac-sdn:9005,uk-ofsi:15005	second surname missing
+Juan-Carlos Velarde-Ostos	person	ofac-sdn:9005,uk-ofsi:15005	hyphens
+Ahmad Shah Noorzahi	person	ofac-sdn:9006,uk-ofsi:15011	exact
+Ahmed Shah Nurzahi	person	ofac-sdn:9006,uk-ofsi:15011	vowels
+Ahmad Shah Noorzai	person	ofac-sdn:9006,uk-ofsi:15011	spelling
+Svetlana Zhuravina	person	ofac-sdn:9007,eu-consolidated:7002,uk-ofsi:15006	exact
+Svetlana Juravina	person	ofac-sdn:9007,eu-consolidated:7002,uk-ofsi:15006	weak alias
+Светлана Журавина	person	ofac-sdn:9007,eu-consolidated:7002,uk-ofsi:15006	Cyrillic
+Zhuravina Svetlana P.	person	ofac-sdn:9007,eu-consolidated:7002,uk-ofsi:15006	initial
+Northwind Maritime Holdings	entity	ofac-sdn:9008,uk-ofsi:15003	legal form dropped
+Northwind Maritime Holdings Limited	entity	ofac-sdn:9008,uk-ofsi:15003	legal form
+North Wind Maritime Holdings Ltd	entity	ofac-sdn:9008,uk-ofsi:15003	split word
+Northwind Shipping Company	entity	ofac-sdn:9008,uk-ofsi:15003	former name
+Al-Najm General Trading LLC	entity	ofac-sdn:9009	exact
+Al Najm General Trading	entity	ofac-sdn:9009	no hyphen
+Najm Trading	entity	ofac-sdn:9009	alias
+Kestrel Aviation FZE	entity	ofac-sdn:9010,eu-consolidated:7007	exact
+Kestrel Aviation	entity	ofac-sdn:9010,eu-consolidated:7007	legal form dropped
+Kestral Aviation FZE	entity	ofac-sdn:9010,eu-consolidated:7007	typo
+Silver Heron	vessel	ofac-sdn:9011,uk-ofsi:15004	exact
+MV Silver Heron	vessel	ofac-sdn:9011,uk-ofsi:15004	prefix
+Silverheron	vessel	ofac-sdn:9011,uk-ofsi:15004	joined
+Ocean Pearl 7	vessel	ofac-sdn:9012	exact
+Ocean Pearl VII	vessel	ofac-sdn:9012	roman numeral
+Transcaspian Logistics	entity	ofac-sdn:9013,eu-consolidated:7004	legal form dropped
+Trans-Caspian Logistics JSC	entity	ofac-sdn:9013,eu-consolidated:7004	hyphen
+АО Транскаспийская логистика	entity	ofac-sdn:9013,eu-consolidated:7004	Cyrillic
+Nikolai Belovodsky	person	ofac-sdn:9014,eu-consolidated:7009	short form
+Nikolay Belovodskiy	person	ofac-sdn:9014,eu-consolidated:7009	transliteration
+Mykola Bilovodskyi	person	ofac-sdn:9014,eu-consolidated:7009	Ukrainian form
+Viktor Pidhoretskyi	person	ofac-sdn:9015,eu-consolidated:7008	short form
+Victor Podgoretsky	person	ofac-sdn:9015,eu-consolidated:7008	Russian form
+Віктор Підгорецький	person	ofac-sdn:9015,eu-consolidated:7008	Ukrainian Cyrillic
+Golden Crescent Exchange	entity	ofac-sdn:9016,uk-ofsi:15008	legal form dropped
+Golden Cresent Exchange Co	entity	ofac-sdn:9016,uk-ofsi:15008	typo
+Ibrahim Abdullah Al-Najdari	person	ofac-sdn:9017,uk-ofsi:15007	exact
+Ibrahim Najdari	person	ofac-sdn:9017,uk-ofsi:15007	short form
+Ebrahim Abdulla Alnajdari	person	ofac-sdn:9017,uk-ofsi:15007	spelling
+Kestrel Wing	aircraft	ofac-sdn:9018	exact
+Yusuf Haddad Kalbani	person	ofac-sdn:9101,eu-consolidated:7005	exact
+Yousef Haddad Al Kalbani	person	ofac-sdn:9101,eu-consolidated:7005	spelling
+يوسف حداد الكلباني	person	ofac-sdn:9101,eu-consolidated:7005	Arabic script
+Eastmoor Bank	entity	ofac-sdn:9102,uk-ofsi:15009	legal form dropped
+Eastmoor Commercial Bank	entity	ofac-sdn:9102,uk-ofsi:15009	former name
+East Moor Bank PJSC	entity	ofac-sdn:9102,uk-ofsi:15009	split word
+Northern Dawn	vessel	ofac-sdn:9103	exact
+Andreas Papathanasoglou	person	ofac-sdn:9104,eu-consolidated:7012	exact
+Andreas Papathanasoglu	person	ofac-sdn:9104,eu-consolidated:7012	spelling
+Ανδρέας Παπαθανασόγλου	person	ofac-sdn:9104,eu-consolidated:7012	Greek
+Rashid Kareem Talebzadeh	person	ofac-sdn:9105	exact
+Rasheed Karim Talebzade	person	ofac-sdn:9105	spelling
+Severnyi Veter	entity	eu-consolidated:7003	transliteration
+ООО Северный ветер	entity	eu-consolidated:7003	Cyrillic
+Severny Veter OOO	entity	eu-consolidated:7003	spelling
+Aleksandr Shchepetilnikov	person	eu-consolidated:7011,uk-ofsi:15012	short form
+Alexander Shchepetilnikov	person	eu-consolidated:7011,uk-ofsi:15012	English form
+Aliaksandr Shchapatsilnikau	person	eu-consolidated:7011,uk-ofsi:15012	Belarusian form
+Blue Lantern Export	entity	uk-ofsi:15010,internal-pep:WATCH-001	legal form dropped
+Blue Lantern Export GmbH	entity	uk-ofsi:15010,internal-pep:WATCH-001	exact
+Marta Kowalczyk-Brenner	person	internal-pep:PEP-001	exact
+Marta Kowalczyk Brenner	person	internal-pep:PEP-001	no hyphen
+Marta Brenner	person	internal-pep:PEP-001	alias
+Tomasz Wieczorek-Lind	person	internal-pep:PEP-002	exact
+Tomasz Wieczorek	person	internal-pep:PEP-002	half surname
+Georgios Antonakopoulos	person	internal-pep:PEP-003	exact
+Giorgos Antonakopoulos	person	internal-pep:PEP-003	short form
+Γεώργιος Αντωνακόπουλος	person	internal-pep:PEP-003	Greek
+Maria Garcia Lopez	person	-	common name
+Oleg Smirnov	person	-	shares first name
+Olga Petrova	person	-	common name
+Ivan Paramonenko	person	-	similar surname prefix
+Dmitri Kozlov	person	-	shares first name
+Svetlana Zhukova	person	-	similar surname
+Hassan Ali Khan	person	-	shares two words
+Ahmad Shah Karimi	person	-	shares two words
+Juan Carlos Rodriguez	person	-	shares two words
+Juan Velasquez Ortiz	person	-	similar surname
+Mahmoud Abbas Rahimi	person	-	shares first name
+Ibrahim Hassan	person	-	shares first name
+Yusuf Demir	person	-	shares first name
+Andreas Papadopoulos	person	-	similar surname
+Nikolai Belov	person	-	surname prefix
+Viktor Petrenko	person	-	shares first name
+Rashid Karimov	person	-	similar names
+Georgios Papadakis	person	-	shares first name
+Marta Kowalska	person	-	similar surname
+Tomasz Lindberg	person	-	similar surname
+Aleksandr Sherbakov	person	-	similar surname
+Mohammed Al-Rashid	person	-	common name
+John Smith	person	-	common name
+Wei Zhang	person	-	common name
+Fatima Haddad	person	-	shares surname
+Kim Nielsen	person	-	common name
+Elena Popescu	person	-	common name
+Ali Hassan	person	-	common name
+Northwind Traders	entity	-	shares first word
+Northern Lights Shipping	entity	-	similar words
+Maritime Holdings Group	entity	-	shares two words
+Golden Gate Exchange	entity	-	shares two words
+Crescent Moon Bakery	entity	-	shares a word
+Blue Lantern Cafe	entity	-	shares two words
+Kestrel Consulting Ltd	entity	-	shares first word
+Eastgate Bank	entity	-	similar word
+General Trading Company	entity	-	generic words
+Caspian Logistics GmbH	entity	-	similar word
+Silver Star	vessel	-	shares first word
+Ocean Breeze	vessel	-	shares first word
+Acme Widgets Ltd	entity	-	unrelated
+Severn Valley Foods	entity	-	similar word
+Talib Zada Imports	entity	-	similar sound
+Pearl River Trading	entity	-	shares a word
