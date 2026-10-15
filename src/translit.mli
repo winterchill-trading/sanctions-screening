@@ -27,6 +27,18 @@ val latin_extra : (int * string) list
     script, [None] otherwise (ASCII included). *)
 val latin : int -> string option
 
+(** Lowercase Cyrillic, Greek and Armenian letters that look like a Latin letter (after
+    lowercasing), as (code point, Latin) pairs, after the Unicode confusables data:
+    Cyrillic р looks like p (its transliteration is r), с like c, х like x, Greek ν like
+    v. Used for the confusable reading of a name that mixes scripts. *)
+val confusables : (int * string) list
+
+(** The Latin look-alike of one code point, if it has one. *)
+val confusable : int -> string option
+
+(** Cyrillic, Greek or Armenian letter (U+0370 to U+058F). *)
+val is_lookalike_script : int -> bool
+
 (** Code point of an Arabic-script letter (U+0600 to U+06FF, and the presentation
     forms). Used to flag consonant-only spellings. *)
 val is_abjad : int -> bool

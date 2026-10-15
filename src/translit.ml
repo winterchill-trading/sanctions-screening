@@ -43,6 +43,7 @@ let cyrillic =
   ; 0x456, "i"
   ; 0x457, "i"
   ; 0x458, "j"
+  ; 0x475, "v"
   ; 0x459, "lj"
   ; 0x45A, "nj"
   ; 0x45B, "c"
@@ -189,3 +190,55 @@ let latin cp = if cp < 0x80 then None else Hashtbl.find table cp
 let is_abjad cp =
   (cp >= 0x600 && cp <= 0x6FF) || (cp >= 0xFB50 && cp <= 0xFDFF) || (cp >= 0xFE70 && cp <= 0xFEFF)
 ;;
+
+(* Look-alikes from Unicode's confusables.txt, restricted to letters whose lowercase form
+   still looks Latin; uppercase-only look-alikes (Cyrillic В, Н, К, М, Т) are included
+   through their lowercase, because the fold lowercases before this table is read. *)
+let confusables =
+  [ 0x430, "a"
+  ; 0x432, "b"
+  ; 0x435, "e"
+  ; 0x433, "r"
+  ; 0x43A, "k"
+  ; 0x43C, "m"
+  ; 0x43D, "h"
+  ; 0x43E, "o"
+  ; 0x43F, "n"
+  ; 0x440, "p"
+  ; 0x441, "c"
+  ; 0x442, "t"
+  ; 0x443, "y"
+  ; 0x445, "x"
+  ; 0x455, "s"
+  ; 0x456, "i"
+  ; 0x458, "j"
+  ; 0x475, "v"
+  ; 0x4AF, "y"
+  ; 0x4BB, "h"
+  ; 0x4CF, "l"
+  ; 0x501, "d"
+  ; 0x51B, "q"
+  ; 0x51D, "w"
+  ; 0x3B1, "a"
+  ; 0x3B2, "b"
+  ; 0x3B5, "e"
+  ; 0x3B7, "n"
+  ; 0x3B9, "i"
+  ; 0x3BA, "k"
+  ; 0x3BD, "v"
+  ; 0x3BF, "o"
+  ; 0x3C1, "p"
+  ; 0x3C4, "t"
+  ; 0x3C5, "u"
+  ; 0x3C7, "x"
+  ; 0x3C9, "w"
+  ; 0x570, "h"
+  ; 0x578, "n"
+  ; 0x57D, "u"
+  ; 0x585, "o"
+  ]
+;;
+
+let confusable_table = Int.Table.of_alist_exn confusables
+let confusable cp = if cp < 0x80 then None else Hashtbl.find confusable_table cp
+let is_lookalike_script cp = cp >= 0x370 && cp <= 0x58F
