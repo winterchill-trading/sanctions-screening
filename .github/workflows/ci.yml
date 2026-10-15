@@ -1,0 +1,33 @@
+name: ci
+on: [push, pull_request]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # libpq-dev builds the pg-async bindings; the server binaries run the throwaway
+      # cluster that the PostgreSQL store conformance test starts.
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpq-dev postgresql
+      - uses: winterchill-trading/infra/.github/actions/ox-setup@main
+        with:
+          pins: |
+            kyc-core https://github.com/winterchill-trading/kyc-core.git
+            pg-async https://github.com/winterchill-trading/pg-async.git
+      - run: shellcheck scripts/*.sh
+      - run: opam exec -- dune build
+      - run: opam exec -- dune test
+      # odoc does not declare result; the local switch only had it transitively.
+      # listing the pins keeps the solver from dropping sibling packages
+      - run: opam install -y result odoc $(opam pin list --short)
+      - name: Build API docs (odoc warnings fail the step)
+        env:
+          ODOC_WARN_ERROR: "true"
+        run: |
+          set -o pipefail
+          opam exec -- dune build @doc --display short 2>&1 | tee doc.log
+          if grep -q "Warning" doc.log; then exit 1; fi
+  obj-magic:
+    uses: winterchill-trading/infra/.github/workflows/obj-magic.yml@main
