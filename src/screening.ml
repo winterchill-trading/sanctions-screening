@@ -256,11 +256,25 @@ let rescreen ?scratch ~policy ~before ~after ~at subjects =
     | Some s -> s
     | None -> Match.Scratch.create ()
   in
+  (* Several snapshots of one list (an OFAC file in two formats, say) are compared as
+     one: their entries together. *)
   let by_list lists =
     List.map (Lists.snapshots lists) ~f:(fun (s : Snapshot.t) -> s.version.list, s)
+    |> List.Assoc.sort_and_group ~compare:List_id.compare
+    |> List.map ~f:(fun (list, snaps) ->
+      match snaps with
+      | [ s ] -> Ok (list, s)
+      | s :: _ ->
+        Snapshot.create
+          ~list
+          ~version:s.version.version
+          (List.concat_map snaps ~f:(fun (s : Snapshot.t) -> s.entries))
+        |> Or_error.map ~f:(fun merged -> list, merged)
+      | [] -> assert false)
+    |> Or_error.combine_errors
   in
-  let b = by_list before
-  and a = by_list after in
+  let%bind b = by_list before in
+  let%bind a = by_list after in
   let ids =
     List.map (b @ a) ~f:fst |> List.dedup_and_sort ~compare:List_id.compare
   in
