@@ -7,7 +7,10 @@ let load dir =
 ;;
 
 let lists_flag name =
-  Command.Param.flag name (Command.Param.required Command.Param.string) ~doc:"DIR list files"
+  Command.Param.flag
+    name
+    (Command.Param.required Command.Param.string)
+    ~doc:"DIR list files"
 ;;
 
 let at_flag =
@@ -42,7 +45,10 @@ let screen_command =
   Command.basic
     ~summary:"screen one subject"
     (let%map_open.Command names =
-       flag "name" (one_or_more_as_list string) ~doc:"NAME a name of the subject (repeatable)"
+       flag
+         "name"
+         (one_or_more_as_list string)
+         ~doc:"NAME a name of the subject (repeatable)"
      and dob = flag "dob" (optional string) ~doc:"DATE 1961-03-12, 1961-03 or 1961"
      and party =
        flag

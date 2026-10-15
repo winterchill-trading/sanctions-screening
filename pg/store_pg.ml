@@ -24,7 +24,9 @@ let connect ?(max_size = 8) ?url () =
   let%bind conn = Deferred.map (Connection.connect config) ~f:Pg_error.to_or_error in
   let%bind.Deferred applied = Migrate.apply conn migrations in
   let%bind.Deferred () = Connection.close conn in
-  let%map applied = Deferred.return (Result.map_error applied ~f:Migrate.Error.to_error) in
+  let%map applied =
+    Deferred.return (Result.map_error applied ~f:Migrate.Error.to_error)
+  in
   { pool = Pool.create ~max_size config; applied }
 ;;
 
@@ -73,15 +75,17 @@ let save_list_version t (v : List_version.t) =
     match existing with
     | Some old when List_version.equal old v -> return (Ok (Ok `Duplicate))
     | Some _ ->
-      refuse
-        [%message "list version already saved with other content" ~version:v.version]
+      refuse [%message "list version already saved with other content" ~version:v.version]
     | None ->
       let*! (_ : int) =
         Query.execute
           conn
           "INSERT INTO sanctions_list_versions (list, version, body) VALUES ($1, $2, $3)"
           ~params:
-            [ Param.string (List_id.to_string v.list); Param.string v.version; Param.bytea b ]
+            [ Param.string (List_id.to_string v.list)
+            ; Param.string v.version
+            ; Param.bytea b
+            ]
       in
       return (Ok (Ok `Created)))
 ;;
@@ -89,7 +93,8 @@ let save_list_version t (v : List_version.t) =
 let list_versions t list =
   Pool.fetch_all
     t.pool
-    "SELECT body FROM sanctions_list_versions WHERE list = $1 ORDER BY version COLLATE \"C\""
+    "SELECT body FROM sanctions_list_versions WHERE list = $1 ORDER BY version COLLATE \
+     \"C\""
     ~params:[ Param.string (List_id.to_string list) ]
     ~row:(body List_version.Stable.V1.bin_reader_t)
   |> or_error
@@ -98,8 +103,8 @@ let list_versions t list =
 let save_subject t (s : Subject.t) =
   Pool.execute
     t.pool
-    "INSERT INTO sanctions_subjects (id, body) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE \
-     SET body = EXCLUDED.body"
+    "INSERT INTO sanctions_subjects (id, body) VALUES ($1, $2) ON CONFLICT (id) DO \
+     UPDATE SET body = EXCLUDED.body"
     ~params:[ Param.string s.id; Param.bytea (encode Subject.Stable.V1.bin_writer_t s) ]
   |> or_error
   |> Deferred.Or_error.ignore_m
@@ -216,9 +221,9 @@ let append_case_events t ~idempotency_key ~expected_version (events : Case.Event
                 case_id
                 ~expected:(expected_version : int)
                 ~stored:(version : int)]
-        else if
-          List.existsi events ~f:(fun i (e : Case.Event.t) ->
-            (not (String.equal e.case_id case_id)) || e.seq <> expected_version + i + 1)
+        else if List.existsi events ~f:(fun i (e : Case.Event.t) ->
+                  (not (String.equal e.case_id case_id))
+                  || e.seq <> expected_version + i + 1)
         then refuse [%message "events out of sequence" case_id]
         else (
           let closes =
@@ -257,9 +262,10 @@ let append_case_events t ~idempotency_key ~expected_version (events : Case.Event
           let*! (_ : int) =
             Query.execute
               conn
-              "INSERT INTO sanctions_case_writes (idempotency_key, case_id, digest) VALUES \
-               ($1, $2, $3)"
-              ~params:[ Param.string idempotency_key; Param.string case_id; Param.string d ]
+              "INSERT INTO sanctions_case_writes (idempotency_key, case_id, digest) \
+               VALUES ($1, $2, $3)"
+              ~params:
+                [ Param.string idempotency_key; Param.string case_id; Param.string d ]
           in
           return (Ok (Ok `Created))))
 ;;

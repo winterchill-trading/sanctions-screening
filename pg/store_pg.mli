@@ -7,7 +7,6 @@
 
 open! Core
 open! Async
-
 include Sanctions_screening.Store.S
 
 (** Connects (to [url], or [DATABASE_URL] / [PG*] variables when absent), applies the

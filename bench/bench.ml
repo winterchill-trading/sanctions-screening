@@ -62,6 +62,8 @@ let () =
        ; Bench.Test.create ~name:"Match.damerau_levenshtein" (fun () ->
            ignore (Match.damerau_levenshtein scratch "paramonov" "paramanov" : int))
        ; Bench.Test.create ~name:"Normalize.keys (Cyrillic)" (fun () ->
-           ignore (Normalize.keys ~party:Person "Олег Иванович Парамонов" : Normalize.Key.t list))
+           ignore
+             (Normalize.keys ~party:Person "Олег Иванович Парамонов"
+              : Normalize.Key.t list))
        ])
 ;;
