@@ -11,4 +11,7 @@
   (ofac/VERSION as fixtures/ofac/VERSION)
   (ofac/alt.csv as fixtures/ofac/alt.csv)
   (ofac/sdn.csv as fixtures/ofac/sdn.csv)
-  (uk/ConList.csv as fixtures/uk/ConList.csv)))
+  (uk/ConList.csv as fixtures/uk/ConList.csv)
+  (uk-sanctions-list/UK-Sanctions-List.xml
+   as
+   fixtures/uk-sanctions-list/UK-Sanctions-List.xml)))

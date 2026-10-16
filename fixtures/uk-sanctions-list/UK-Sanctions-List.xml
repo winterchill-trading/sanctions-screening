@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Designations xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DateGenerated>15/10/2026</DateGenerated>
+  <!-- Test fixture in the UK Sanctions List XML format (schema 4.33). Every party is invented. -->
+  <Designation>
+    <LastUpdated>02/05/2026</LastUpdated>
+    <DateDesignated>17/03/2023</DateDesignated>
+    <UniqueID>RUS9001</UniqueID>
+    <OFSIGroupID>99001</OFSIGroupID>
+    <Names>
+      <Name>
+        <Name1>Radomir</Name1>
+        <Name2>Vasilyevich</Name2>
+        <Name6>ZHELTOVSKY</Name6>
+        <NameType>Primary Name</NameType>
+      </Name>
+      <Name>
+        <Name1>Radomir</Name1>
+        <Name6>ZHELTOVSKIY</Name6>
+        <NameType>Primary Name Variation</NameType>
+      </Name>
+      <Name>
+        <Name1>Radomir</Name1>
+        <Name6>ZHELTOVSKI</Name6>
+        <NameType>Alias</NameType>
+        <AliasStrength>Good quality a.k.a</AliasStrength>
+      </Name>
+      <Name>
+        <Name6>Rado Zhelt</Name6>
+        <NameType>Alias</NameType>
+        <AliasStrength>Low quality a.k.a</AliasStrength>
+      </Name>
+    </Names>
+    <NonLatinNames>
+      <NonLatinName>
+        <NameNonLatinScript>Радомир Васильевич Желтовский</NameNonLatinScript>
+        <NonLatinScriptType>Cyrillic</NonLatinScriptType>
+        <NonLatinScriptLanguage>Russian</NonLatinScriptLanguage>
+      </NonLatinName>
+    </NonLatinNames>
+    <Titles>
+      <Title>Mr</Title>
+    </Titles>
+    <RegimeName>The Russia (Sanctions) (EU Exit) Regulations 2019</RegimeName>
+    <IndividualEntityShip>Individual</IndividualEntityShip>
+    <DesignationSource>UK</DesignationSource>
+    <SanctionsImposed>Asset freeze|Travel Ban</SanctionsImposed>
+    <SanctionsImposedIndicators>
+      <AssetFreeze>true</AssetFreeze>
+      <TravelBan>true</TravelBan>
+    </SanctionsImposedIndicators>
+    <OtherInformation>Test fixture.</OtherInformation>
+    <UKStatementofReasons>Test fixture &amp; invented party.</UKStatementofReasons>
+    <Addresses>
+      <Address>
+        <AddressLine6>Kaliningrad</AddressLine6>
+        <AddressCountry>Russia</AddressCountry>
+      </Address>
+    </Addresses>
+    <IndividualDetails>
+      <Individual>
+        <DOBs>
+          <DOB>23/08/1968</DOB>
+        </DOBs>
+        <Nationalities>
+          <Nationality>Russia</Nationality>
+          <Nationality>Belarus</Nationality>
+        </Nationalities>
+        <Genders>
+          <Gender>Male</Gender>
+        </Genders>
+      </Individual>
+    </IndividualDetails>
+  </Designation>
+  <Designation>
+    <LastUpdated>02/05/2026</LastUpdated>
+    <DateDesignated>01/12/2024</DateDesignated>
+    <UniqueID>SYR9002</UniqueID>
+    <OFSIGroupID>99002</OFSIGroupID>
+    <Names>
+      <Name>
+        <Name1>Farid</Name1>
+        <Name2>Nasser</Name2>
+        <Name6>AL-QUDAIMI</Name6>
+        <NameType>Primary name</NameType>
+      </Name>
+      <Name>
+        <Name1>Fareed</Name1>
+        <Name6>QUDAIMI</Name6>
+        <NameType>ALias</NameType>
+      </Name>
+    </Names>
+    <RegimeName>The Syria (Sanctions) (EU Exit) Regulations 2019</RegimeName>
+    <IndividualEntityShip>Individual</IndividualEntityShip>
+    <DesignationSource>UK</DesignationSource>
+    <SanctionsImposed>Asset freeze</SanctionsImposed>
+    <IndividualDetails>
+      <Individual>
+        <DOBs>
+          <DOB>dd/mm/1959</DOB>
+          <DOB>dd/04/1960</DOB>
+        </DOBs>
+        <Nationalities>
+          <Nationality>Syria</Nationality>
+        </Nationalities>
+      </Individual>
+    </IndividualDetails>
+  </Designation>
+  <Designation>
+    <LastUpdated>02/05/2026</LastUpdated>
+    <DateDesignated>09/09/2025</DateDesignated>
+    <UniqueID>RUS9003</UniqueID>
+    <OFSIGroupID>99003</OFSIGroupID>
+    <Names>
+      <Name>
+        <Name6>AMBERFIELD TRADING FZE</Name6>
+        <NameType>Primary name</NameType>
+      </Name>
+      <Name>
+        <Name6>Amberfield Trading</Name6>
+        <NameType>Primary name variation</NameType>
+      </Name>
+    </Names>
+    <RegimeName>The Russia (Sanctions) (EU Exit) Regulations 2019</RegimeName>
+    <IndividualEntityShip>Entity</IndividualEntityShip>
+    <DesignationSource>UK</DesignationSource>
+    <SanctionsImposed>Asset freeze</SanctionsImposed>
+    <EntityDetails>
+      <Entity>
+        <TypeOfEntities>
+          <TypeOfEntity>Free Zone Establishment</TypeOfEntity>
+        </TypeOfEntities>
+      </Entity>
+    </EntityDetails>
+  </Designation>
+  <Designation>
+    <LastUpdated>02/05/2026</LastUpdated>
+    <DateDesignated>20/05/2025</DateDesignated>
+    <UniqueID>RUS9004</UniqueID>
+    <OFSIGroupID>99004</OFSIGroupID>
+    <Names>
+      <Name>
+        <Name6>CORAL MERIDIAN</Name6>
+        <NameType>Primary name</NameType>
+      </Name>
+      <Name>
+        <Name6>Meridian Star 4</Name6>
+        <NameType>Alias</NameType>
+      </Name>
+    </Names>
+    <RegimeName>The Russia (Sanctions) (EU Exit) Regulations 2019</RegimeName>
+    <IndividualEntityShip>Ship</IndividualEntityShip>
+    <DesignationSource>UK</DesignationSource>
+    <SanctionsImposed>Specification as a ship</SanctionsImposed>
+    <ShipDetails>
+      <Ship>
+        <IMONumbers>
+          <IMONumber>IMO0000004</IMONumber>
+        </IMONumbers>
+      </Ship>
+    </ShipDetails>
+  </Designation>
+</Designations>
