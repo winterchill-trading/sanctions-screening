@@ -13,12 +13,12 @@ rescreens a population when a list changes, and runs a small case lifecycle.
 | --- | --- |
 | `src/` | Library `sanctions-screening` (module `Sanctions_screening`): Unicode fold, transliteration, normalisation, matching, parsers, index, screening, cases, `Store.S`, memory store, conformance suite |
 | `pg/` | Library `sanctions-screening-pg`: `Store_pg` over `pg-async`, migrations embedded at build time |
-| `migrations/` | PostgreSQL schema (`sanctions_` tables); SQL lives only here and in `pg/store_pg.ml` |
+| `migrations/` | PostgreSQL tables (`sanctions_` prefix), applied inside the library's own schema (default `sanctions_screening`) with its own `schema_migrations`; SQL lives only here and in `pg/store_pg.ml` |
 | `bin/` | The `sanctions-screening` command: `screen`, `rescreen`, `stats` |
 | `test/` | Expect tests, Quickcheck properties, adversarial spellings, precision and recall harness (`labelled.tsv`), cram test `cli.t` |
 | `test-pg/` | The store conformance run on a throwaway PostgreSQL cluster |
 | `bench/` | `core_bench` benchmark on a synthetic 20k-entry list (or real lists via `SANCTIONS_BENCH_LISTS`) |
-| `fixtures/` | Sanitised list excerpts in each public format; every party is invented |
+| `fixtures/` | Sanitised list excerpts in each public format; every party is invented. Embedded in the library (`src/gen/gen_fixtures.ml`, `List_source.load_fixtures`) and installed under `share/` (`fixtures/dune`) |
 | `scripts/` | `fetch-lists.sh` (real lists), table generators for Unicode data and country names |
 | `.github/` | CI workflow |
 
@@ -86,6 +86,17 @@ most one `gh run watch <id> --exit-status`. Never poll in a loop.
   dep too.
 - The list fixtures keep CRLF line ends like the published files; `.gitattributes` marks
   `fixtures/**` as binary-exact. Do not let an editor rewrite them.
+- A new fixture file is embedded automatically but must also be listed in
+  `fixtures/dune` to be installed; adding entries changes the prefilter count, result
+  ids and the precision table (check the labelled negatives do not start hitting it).
+- `pg/store_pg.ml` writes every table as `{s}.table` and `q` puts the schema in; never
+  write an unqualified table name there, and never edit `migrations/0001_init.sql` (its
+  checksum is how a 0.1.0 install is recognised and adopted).
+- `Hit.to_kyc` uses the list-qualified key as kyc-core's `entry_id`; keep it, ids collide
+  across lists.
+- The OFAC XML is parsed from a channel; anything that keeps an `Xml.t` per party alive
+  brings the 880 MB peak back. Measure with `/usr/bin/time -l sanctions-screening stats
+  -lists <dir>` on fetched lists after touching `xml.ml` or `ofac_xml.ml`.
 - An OFAC CSV and an OFAC XML in one directory duplicate every entry id, and
   `Lists.create` refuses that.
 - Other agents' half-written repositories can print errors in a workspace build; filter
