@@ -60,16 +60,18 @@ let first_line contents =
   | [] -> "unknown"
 ;;
 
-(* The shared core of [load_dir] and [load_files]: [read] gives a file's contents,
+(* The shared core of [load_dir] and [load_files]: [head] gives enough of a file to
+   recognise it (at least the 4 KiB [detect] looks at), [read] its contents, [ofac_xml]
+   parses an OFAC advanced XML file (from a channel, for files on disk),
    [sibling path name] finds a file of that (lower-case) name in the same directory, and
    [undated path] versions an OFAC CSV that has no VERSION file. *)
-let load ~paths ~read ~sibling ~undated =
+let load ~paths ~head ~read ~ofac_xml ~sibling ~undated =
   Or_error.try_with_join (fun () ->
     paths
     |> List.filter_map ~f:(fun path ->
-      let contents = read path in
-      match detect ~filename:path ~contents with
+      match detect ~filename:path ~contents:(head path) with
       | None -> None
+      | Some Ofac_advanced_xml -> Some (ofac_xml path |> Or_error.tag ~tag:path)
       | Some Ofac_sdn_csv ->
         let alt = Option.map (sibling path "alt.csv") ~f:read in
         let version =
@@ -77,9 +79,22 @@ let load ~paths ~read ~sibling ~undated =
           | Some v -> first_line (read v)
           | None -> undated path
         in
-        Some (parse Ofac_sdn_csv ~version ?alt contents |> Or_error.tag ~tag:path)
-      | Some format -> Some (parse format contents |> Or_error.tag ~tag:path))
+        Some (parse Ofac_sdn_csv ~version ?alt (read path) |> Or_error.tag ~tag:path)
+      | Some format -> Some (parse format (read path) |> Or_error.tag ~tag:path))
     |> Or_error.combine_errors)
+;;
+
+(* One allocation of the file's size. [In_channel.read_all] grows a buffer by doubling and
+   copies it out, which for the 130 MB OFAC XML held about three times the file at its
+   peak. *)
+let read_file path =
+  In_channel.with_file path ~binary:true ~f:(fun ic ->
+    let len = Int64.to_int_exn (In_channel.length ic) in
+    let s = Stdlib.really_input_string ic len in
+    (* A file that grew while we read is read again in full rather than cut short. *)
+    match In_channel.input_char ic with
+    | None -> s
+    | Some _ -> In_channel.read_all path)
 ;;
 
 let load_dir dir =
@@ -98,7 +113,18 @@ let load_dir dir =
          ~zone:Time_float.Zone.utc)
   in
   Or_error.try_with_join (fun () ->
-    load ~paths:(files dir) ~read:In_channel.read_all ~sibling ~undated)
+    load
+      ~paths:(files dir)
+      ~head:(fun path ->
+        In_channel.with_file path ~binary:true ~f:(fun ic ->
+          let buf = Bytes.create 4096 in
+          let n = In_channel.input ic ~buf ~pos:0 ~len:4096 in
+          Bytes.To_string.sub buf ~pos:0 ~len:n))
+      ~read:read_file
+      ~ofac_xml:(fun path ->
+        In_channel.with_file path ~binary:true ~f:Ofac_xml.of_channel)
+      ~sibling
+      ~undated)
 ;;
 
 (* Path order as [load_dir] walks a tree: component by component. *)
@@ -121,7 +147,9 @@ let load_files files =
     in
     load
       ~paths:(List.sort (Map.keys by_path) ~compare:compare_paths)
+      ~head:(Map.find_exn by_path)
       ~read:(Map.find_exn by_path)
+      ~ofac_xml:(fun path -> Ofac_xml.parse (Map.find_exn by_path path))
       ~sibling
       ~undated:(fun _ -> "unknown")
 ;;
