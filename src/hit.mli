@@ -64,13 +64,20 @@ type t = Stable.V1.t =
   }
 [@@deriving compare, equal, sexp]
 
-(** ["<list>:<entry_id>"]. *)
+(** ["<list>:<entry_id>"], e.g. ["ofac-sdn:9001"]: unique across lists, where entry ids
+    alone are not (two lists may both have an entry ["101"]). *)
 val entry_key : t -> string
+
+(** The list and the list's own entry id of an {!entry_key} (split at the first [':'];
+    list names never contain one), e.g. to read back a kyc-core hit's [entry_id]. *)
+val split_entry_key : string -> (List_id.t * string) option
 
 (** One line for logs and case screens:
     ["ofac-sdn:9001 931 High jaro_winkler 'Oleg PARAMONOV' ~ 'Oleg Paramonov' dob=Exact"]. *)
 val to_string_hum : t -> string
 
-(** The hit as kyc-core records it (score scaled to 0 to 100, algorithm
-    ["sanctions-screening/<best component>"]). *)
+(** The hit as kyc-core records it: [entry_id] is the list-qualified {!entry_key}
+    (["eu-consolidated:101"]), score scaled to 0 to 100, algorithm
+    ["sanctions-screening/<best component>"]. The list's own id stays in [entry_id];
+    {!split_entry_key} recovers it from the kyc-core record. *)
 val to_kyc : t -> Kyc_core.Screening.Hit.t

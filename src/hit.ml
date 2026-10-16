@@ -63,6 +63,11 @@ type t = Stable.V1.t =
 
 let entry_key t = List_id.to_string t.list ^ ":" ^ t.entry_id
 
+let split_entry_key key =
+  Option.map (String.lsplit2 key ~on:':') ~f:(fun (list, id) ->
+    List_id.of_string list, id)
+;;
+
 let reason_to_string : Reason.t -> string = function
   | Dob a -> "dob=" ^ Sexp.to_string [%sexp (a : Dob.Agreement.t)]
   | Nationality_match c -> "nationality=" ^ c
@@ -88,7 +93,10 @@ let to_string_hum t =
 let to_kyc t : Kyc_core.Screening.Hit.t =
   { source = List_id.to_kyc t.list
   ; list_version = t.list_version
-  ; entry_id = t.entry_id
+  ; (* kyc-core identifies a hit within its screening by entry id alone, and ids repeat
+       across lists (and the UK and internal lists share a kyc-core source), so the id is
+       qualified by the list. *)
+    entry_id = entry_key t
   ; matched_name = t.matched_name
   ; score = (t.score + 5) / 10
   ; algorithm = "sanctions-screening/" ^ t.name.best
