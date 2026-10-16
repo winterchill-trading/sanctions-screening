@@ -58,26 +58,77 @@ let decode_entities s =
     Buffer.contents buf)
 ;;
 
-(* A pull parser over the whole string. Events are delivered to [on_open], [on_close] and
-   [on_text]; callers build trees from them. *)
-let scan text ~on_open ~on_close ~on_text =
-  let n = String.length text in
-  let pos = ref 0 in
-  let find_from sub =
-    match String.substr_index text ~pos:!pos ~pattern:sub with
-    | Some i -> i
-    | None -> raise (Bad ("expected " ^ sub))
+(* The input: the text not yet consumed, and where more comes from. A whole string is a
+   source that is already at its end; a channel source holds one token plus one chunk at a
+   time, so a 130 MB file never sits in memory as one string. *)
+type source =
+  { mutable text : string
+  ; mutable pos : int
+  ; mutable eof : bool
+  ; next_chunk : unit -> string option
+  }
+
+let of_string text = { text; pos = 0; eof = true; next_chunk = (fun () -> None) }
+
+(* Drops what was consumed and appends the next chunk; false at the end of the input. *)
+let more src =
+  if src.eof
+  then false
+  else (
+    match src.next_chunk () with
+    | None ->
+      src.eof <- true;
+      false
+    | Some chunk ->
+      src.text <- String.drop_prefix src.text src.pos ^ chunk;
+      src.pos <- 0;
+      true)
+;;
+
+(* At least [k] bytes from [pos], or what is left at the end. *)
+let rec ensure src k =
+  if String.length src.text - src.pos < k && more src then ensure src k
+;;
+
+(* The index of [sub] at or after [pos], reading more input as needed. *)
+let rec find_from src sub =
+  match String.substr_index src.text ~pos:src.pos ~pattern:sub with
+  | Some i -> i
+  | None -> if more src then find_from src sub else raise (Bad ("expected " ^ sub))
+;;
+
+(* The [>] that ends the tag starting at [pos], outside quoted attribute values. *)
+let tag_end src =
+  (* [more] moves the unconsumed text to the front, so positions are kept relative to
+     [pos] across refills. *)
+  let rec from offset quote =
+    let i = src.pos + offset in
+    if i >= String.length src.text
+    then if more src then from offset quote else raise (Bad "unterminated tag")
+    else (
+      let c = src.text.[i] in
+      match quote with
+      | Some q -> from (offset + 1) (if Char.equal c q then None else quote)
+      | None ->
+        if Char.equal c '>'
+        then i
+        else if Char.equal c '"' || Char.equal c '\''
+        then from (offset + 1) (Some c)
+        else from (offset + 1) None)
   in
+  from 1 None
+;;
+
+(* A pull parser. Events are delivered to [on_open], [on_close] and [on_text]; callers
+   build trees from them. Each token is read whole into [src.text] before it is parsed.
+   [wants_text] says whether text here would be kept; text that would not is skipped
+   without copying it (the whitespace between the parties of a 130 MB list, mostly). *)
+let scan src ~on_open ~on_close ~on_text ~wants_text =
   let is_space c = Char.is_whitespace c in
-  let skip_spaces () =
-    while !pos < n && is_space text.[!pos] do
-      incr pos
-    done
-  in
-  let read_name () =
+  let read_name text ~pos ~stop =
     let start = !pos in
     while
-      !pos < n
+      !pos < stop
       && (not (is_space text.[!pos]))
       && not (List.mem [ '>'; '/'; '=' ] text.[!pos] ~equal:Char.equal)
     do
@@ -86,89 +137,108 @@ let scan text ~on_open ~on_close ~on_text =
     if !pos = start then raise (Bad "expected a name");
     String.sub text ~pos:start ~len:(!pos - start)
   in
-  while !pos < n do
-    if Char.equal text.[!pos] '<'
-    then
-      if String.is_substring_at text ~pos:!pos ~substring:"<!--"
-      then pos := find_from "-->" + 3
-      else if String.is_substring_at text ~pos:!pos ~substring:"<![CDATA["
+  let skip_spaces text ~pos ~stop =
+    while !pos < stop && is_space text.[!pos] do
+      incr pos
+    done
+  in
+  let at substring = String.is_substring_at src.text ~pos:src.pos ~substring in
+  let rec loop () =
+    ensure src 1;
+    if src.pos < String.length src.text
+    then (
+      if Char.equal src.text.[src.pos] '<'
       then (
-        let start = !pos + 9 in
-        pos := start;
-        let stop = find_from "]]>" in
-        on_text (String.sub text ~pos:start ~len:(stop - start));
-        pos := stop + 3)
-      else if String.is_substring_at text ~pos:!pos ~substring:"<?"
-      then pos := find_from "?>" + 2
-      else if String.is_substring_at text ~pos:!pos ~substring:"<!"
-      then pos := find_from ">" + 1
-      else if String.is_substring_at text ~pos:!pos ~substring:"</"
-      then (
-        pos := !pos + 2;
-        let name = read_name () in
-        skip_spaces ();
-        if !pos >= n || not (Char.equal text.[!pos] '>') then raise (Bad "expected >");
-        incr pos;
-        on_close (local_name name))
+        ensure src 9;
+        if at "<!--"
+        then src.pos <- find_from src "-->" + 3
+        else if at "<![CDATA["
+        then (
+          src.pos <- src.pos + 9;
+          let stop = find_from src "]]>" in
+          if wants_text ()
+          then on_text (String.sub src.text ~pos:src.pos ~len:(stop - src.pos));
+          src.pos <- stop + 3)
+        else if at "<?"
+        then src.pos <- find_from src "?>" + 2
+        else if at "<!"
+        then src.pos <- find_from src ">" + 1
+        else (
+          let stop = tag_end src in
+          let text = src.text in
+          let pos = ref (src.pos + 1) in
+          if Char.equal text.[!pos] '/'
+          then (
+            incr pos;
+            let name = read_name text ~pos ~stop in
+            skip_spaces text ~pos ~stop;
+            if !pos <> stop then raise (Bad "expected >");
+            src.pos <- stop + 1;
+            on_close (local_name name))
+          else (
+            let name = local_name (read_name text ~pos ~stop) in
+            let attrs = ref [] in
+            let fin = ref false in
+            while not !fin do
+              skip_spaces text ~pos ~stop;
+              if !pos >= stop
+              then (
+                on_open name (List.rev !attrs);
+                fin := true)
+              else if Char.equal text.[!pos] '/'
+              then (
+                on_open name (List.rev !attrs);
+                on_close name;
+                fin := true)
+              else (
+                let an = local_name (read_name text ~pos ~stop) in
+                skip_spaces text ~pos ~stop;
+                if !pos >= stop || not (Char.equal text.[!pos] '=')
+                then raise (Bad "expected =");
+                incr pos;
+                skip_spaces text ~pos ~stop;
+                let q = text.[!pos] in
+                if not (Char.equal q '"' || Char.equal q '\'')
+                then raise (Bad "expected quote");
+                incr pos;
+                let start = !pos in
+                let close =
+                  match String.index_from text start q with
+                  | Some i when i < stop -> i
+                  | _ -> raise (Bad "unterminated attribute")
+                in
+                attrs
+                := (an, decode_entities (String.sub text ~pos:start ~len:(close - start)))
+                   :: !attrs;
+                pos := close + 1)
+            done;
+            src.pos <- stop + 1)))
       else (
-        incr pos;
-        let name = local_name (read_name ()) in
-        let attrs = ref [] in
-        let fin = ref false in
-        while not !fin do
-          skip_spaces ();
-          if !pos >= n then raise (Bad "unterminated tag");
-          match text.[!pos] with
-          | '>' ->
-            incr pos;
-            on_open name (List.rev !attrs);
-            fin := true
-          | '/' ->
-            pos := !pos + 2;
-            on_open name (List.rev !attrs);
-            on_close name;
-            fin := true
-          | _ ->
-            let an = local_name (read_name ()) in
-            skip_spaces ();
-            if !pos >= n || not (Char.equal text.[!pos] '=') then raise (Bad "expected =");
-            incr pos;
-            skip_spaces ();
-            let q = text.[!pos] in
-            if not (Char.equal q '"' || Char.equal q '\'')
-            then raise (Bad "expected quote");
-            incr pos;
-            let start = !pos in
-            let stop =
-              match String.index_from text start q with
-              | Some i -> i
-              | None -> raise (Bad "unterminated attribute")
-            in
-            attrs
-            := (an, decode_entities (String.sub text ~pos:start ~len:(stop - start)))
-               :: !attrs;
-            pos := stop + 1
-        done)
-    else (
-      let stop =
-        match String.index_from text !pos '<' with
-        | Some i -> i
-        | None -> n
-      in
-      on_text (decode_entities (String.sub text ~pos:!pos ~len:(stop - !pos)));
-      pos := stop)
-  done
+        let rec text_end () =
+          match String.index_from src.text src.pos '<' with
+          | Some i -> i
+          | None -> if more src then text_end () else String.length src.text
+        in
+        let stop = text_end () in
+        if wants_text ()
+        then
+          on_text
+            (decode_entities (String.sub src.text ~pos:src.pos ~len:(stop - src.pos)));
+        src.pos <- stop);
+      loop ())
+  in
+  loop ()
 ;;
 
 (* Builds trees for elements at depth >= [depth]; [emit] receives each finished element at
    exactly [depth]. *)
-let run text ~depth ~emit =
+let run src ~depth ~emit =
   let level = ref 0 in
   (* Stack of open elements being built: name, attrs, reversed children. *)
   let stack : (string * (string * string) list * node list ref) list ref = ref [] in
   try
     scan
-      text
+      src
       ~on_open:(fun name attrs ->
         if !level >= depth then stack := (name, attrs, ref []) :: !stack;
         incr level)
@@ -189,18 +259,29 @@ let run text ~depth ~emit =
       ~on_text:(fun s ->
         match !stack with
         | (_, _, kids) :: _ -> kids := Text s :: !kids
-        | [] -> ());
+        | [] -> ())
+      ~wants_text:(fun () -> not (List.is_empty !stack));
     if !level <> 0 then raise (Bad "unclosed elements at end of input");
     Ok ()
   with
   | Bad msg -> Or_error.error_s [%message "malformed XML" msg]
 ;;
 
-let iter_elements text ~depth ~f = run text ~depth ~emit:f
+let iter_elements text ~depth ~f = run (of_string text) ~depth ~emit:f
+
+let iter_elements_channel ?(chunk_size = 1 lsl 20) ic ~depth ~f =
+  let buf = Bytes.create chunk_size in
+  let next_chunk () =
+    match In_channel.input ic ~buf ~pos:0 ~len:chunk_size with
+    | 0 -> None
+    | n -> Some (Bytes.To_string.sub buf ~pos:0 ~len:n)
+  in
+  run { text = ""; pos = 0; eof = false; next_chunk } ~depth ~emit:f
+;;
 
 let parse text =
   let root = ref None in
-  match run text ~depth:0 ~emit:(fun el -> root := Some el) with
+  match run (of_string text) ~depth:0 ~emit:(fun el -> root := Some el) with
   | Error _ as e -> e
   | Ok () ->
     (match !root with
