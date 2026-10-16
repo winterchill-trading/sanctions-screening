@@ -131,10 +131,10 @@ let%expect_test "results are deterministic and carry their inputs" =
     (true 18de680d47272eaa4e147ec691491501)
     ((internal-pep 2026-10-01) (eu-consolidated 2026-10-15) (ofac-sdn 2026-10-15)
      (ofac-sdn 2026-10-15) (uk-ofsi 2026-10-15))
-    (((source Eu_fsf) (list_version 2026-10-15) (entry_id 7001)
+    (((source Eu_fsf) (list_version 2026-10-15) (entry_id eu-consolidated:7001)
       (matched_name "Oleg Ivanovich Paramonov") (score 100)
       (algorithm sanctions-screening/tokens))
-     ((source Ofac_sdn) (list_version 2026-10-15) (entry_id 9001)
+     ((source Ofac_sdn) (list_version 2026-10-15) (entry_id ofac-sdn:9001)
       (matched_name "Oleg Ivanovich PARAMONOV") (score 100)
       (algorithm sanctions-screening/tokens)))
     |}]
@@ -178,4 +178,52 @@ let%expect_test "the index finds what a full scan finds" =
           printf "MISS %s | %s %d\n" p (Index.name index id).name.name sc))));
   printf "names above 850: %d, missed by the prefilter: %d\n" !total !missed;
   [%expect {| names above 850: 667, missed by the prefilter: 0 |}]
+;;
+
+(* Two lists may use the same entry id. kyc-core identifies a hit within one screening by
+   its entry id, so the kyc record carries the list-qualified key; the raw id stays on the
+   hit and can be read back from the key. *)
+let%expect_test "kyc hits are keyed by list and entry id" =
+  let list name =
+    sprintf
+      {|((list (Other %s)) (version 2026-10-01)
+         (entries (((id 101) (party Person)
+                    (names (((name "Oleg Paramonov") (kind Primary))))))))|}
+      name
+    |> Fixture.parse
+    |> ok_exn
+  in
+  let lists = Lists.create [ list "watch-a"; list "watch-b" ] |> ok_exn in
+  let result =
+    Screening.screen
+      ~policy:Policy.default
+      ~lists
+      ~context:Onboarding
+      ~at
+      (person "Oleg Paramonov")
+  in
+  let hits = Decision.hits result.decision in
+  let kyc = List.map hits ~f:Hit.to_kyc in
+  print_s
+    [%message
+      ""
+        ~raw_ids:(List.map hits ~f:(fun h -> h.entry_id) : string list)
+        ~kyc_ids:(List.map kyc ~f:(fun h -> h.entry_id) : string list)
+        ~read_back:
+          (List.map kyc ~f:(fun h -> Hit.split_entry_key h.entry_id)
+           : (List_id.t * string) option list)
+        ~kyc_screening_accepts:
+          (Kyc_core.Screening.create
+             ~id:(Kyc_core.Screening_id.of_string "screening-1")
+             ~reason:Onboarding
+             ~screened_at:at
+             ~hits:kyc
+           |> Result.is_ok
+           : bool)];
+  [%expect
+    {|
+    ((raw_ids (101 101)) (kyc_ids (watch-a:101 watch-b:101))
+     (read_back ((((Other watch-a) 101)) (((Other watch-b) 101))))
+     (kyc_screening_accepts true))
+    |}]
 ;;
