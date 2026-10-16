@@ -128,9 +128,9 @@ let%expect_test "results are deterministic and carry their inputs" =
   print_s [%sexp (kyc : Kyc_core.Screening.Hit.t list)];
   [%expect
     {|
-    (true 18de680d47272eaa4e147ec691491501)
+    (true 8415e0dbd04f8a4c98d4a717fdc6b14b)
     ((internal-pep 2026-10-01) (eu-consolidated 2026-10-15) (ofac-sdn 2026-10-15)
-     (ofac-sdn 2026-10-15) (uk-ofsi 2026-10-15))
+     (ofac-sdn 2026-10-15) (uk-ofsi 2026-10-15) (uk-sanctions-list 2026-10-15))
     (((source Eu_fsf) (list_version 2026-10-15) (entry_id eu-consolidated:7001)
       (matched_name "Oleg Ivanovich Paramonov") (score 100)
       (algorithm sanctions-screening/tokens))
@@ -177,7 +177,7 @@ let%expect_test "the index finds what a full scan finds" =
           incr missed;
           printf "MISS %s | %s %d\n" p (Index.name index id).name.name sc))));
   printf "names above 850: %d, missed by the prefilter: %d\n" !total !missed;
-  [%expect {| names above 850: 667, missed by the prefilter: 0 |}]
+  [%expect {| names above 850: 729, missed by the prefilter: 0 |}]
 ;;
 
 (* Two lists may use the same entry id. kyc-core identifies a hit within one screening by

@@ -6,8 +6,9 @@ The command reads every list file under a directory.
   ofac-sdn 2026-10-15: 18 entries (10 person, 5 entity, 2 vessel, 1 aircraft), 30 names, digest 7955f59098a1
   ofac-sdn 2026-10-15: 5 entries (3 person, 1 entity, 1 vessel), 9 names, digest 92782392cc38
   uk-ofsi 2026-10-15: 12 entries (7 person, 4 entity, 1 vessel), 17 names, digest 361141ba8d3e
-  ((entries 51) (names 90) (trigrams 1114) (longest_posting 20)
-   (postings_total 3169))
+  uk-sanctions-list 2026-10-15: 4 entries (2 person, 1 entity, 1 vessel), 11 names, digest c464ba9ccbb3
+  ((entries 55) (names 101) (trigrams 1206) (longest_posting 22)
+   (postings_total 3509))
 
   $ sanctions-screening screen -name "Oleg Paramonov" -dob 1961-03-12 -lists ../../fixtures -at "2026-10-15 12:00:00Z"
   potential match
@@ -35,6 +36,7 @@ The command reads every list file under a directory.
   ofac-sdn: 23 added, 0 removed, 0 changed
   eu-consolidated: 0 added, 0 removed, 0 changed
   uk-ofsi: 12 added, 0 removed, 0 changed
+  uk-sanctions-list: 4 added, 0 removed, 0 changed
   internal-pep: 4 added, 0 removed, 0 changed
   rescreened 1, unchanged 1
   newly hit: c-1

@@ -320,6 +320,63 @@ let%expect_test "UK OFSI CSV" =
     |}]
 ;;
 
+let%expect_test "UK Sanctions List XML" =
+  let text = read "uk-sanctions-list/UK-Sanctions-List.xml" in
+  Uk_xml.parse text |> ok_exn |> show;
+  [%expect
+    {|
+    ((list Uk_sanctions_list) (version 2026-10-15) (published ()) (entries 4)
+     (digest c464ba9ccbb352093941227e60068193))
+    uk-sanctions-list:RUS9001 person 2023-03-17
+      Primary Radomir Vasilyevich ZHELTOVSKY
+      Alias Radomir ZHELTOVSKIY
+      Alias Radomir ZHELTOVSKI
+      Alias Радомир Васильевич Желтовский
+      Weak_alias Rado Zhelt
+      dob 1968-08-23
+      nationality BY, RU
+      programmes The Russia (Sanctions) (EU Exit) Regulations 2019
+    uk-sanctions-list:RUS9003 entity 2025-09-09
+      Primary AMBERFIELD TRADING FZE
+      Alias Amberfield Trading
+      programmes The Russia (Sanctions) (EU Exit) Regulations 2019
+    uk-sanctions-list:RUS9004 vessel 2025-05-20
+      Primary CORAL MERIDIAN
+      Alias Meridian Star 4
+      programmes The Russia (Sanctions) (EU Exit) Regulations 2019
+    uk-sanctions-list:SYR9002 person 2024-12-01
+      Primary Farid Nasser AL-QUDAIMI
+      Alias Fareed QUDAIMI
+      dob 1960-04, 1959
+      nationality SY
+      programmes The Syria (Sanctions) (EU Exit) Regulations 2019
+    |}];
+  print_s
+    [%sexp
+      (List_source.detect ~filename:"UK-Sanctions-List.xml" ~contents:text
+       : List_source.Format.t option)];
+  [%expect {| (Uk_sanctions_list_xml) |}];
+  (* Date forms seen in the published file, including its one malformed date. *)
+  let dobs =
+    List.map
+      [ "23/08/1968"; "dd/mm/1959"; "dd/04/1960"; "1957"; "11/11/19yy"; "31/02/1970" ]
+      ~f:(fun d ->
+        let doc =
+          sprintf
+            {|<Designations><DateGenerated>15/10/2026</DateGenerated><Designation><UniqueID>X1</UniqueID><Names><Name><Name6>A B</Name6><NameType>Primary name</NameType></Name></Names><IndividualEntityShip>Individual</IndividualEntityShip><IndividualDetails><Individual><DOBs><DOB>%s</DOB></DOBs></Individual></IndividualDetails></Designation></Designations>|}
+            d
+        in
+        let s = Uk_xml.parse doc |> ok_exn in
+        d, List.concat_map s.entries ~f:(fun e -> List.map e.dobs ~f:Dob.to_string))
+  in
+  print_s [%sexp (dobs : (string * string list) list)];
+  [%expect
+    {|
+    ((23/08/1968 (1968-08-23)) (dd/mm/1959 (1959)) (dd/04/1960 (1960-04))
+     (1957 (1957)) (11/11/19yy ()) (31/02/1970 ()))
+    |}]
+;;
+
 let%expect_test "fixture round trip" =
   let s = Fixture.parse (read "custom/internal-pep.sexp") |> ok_exn in
   show s;
@@ -370,6 +427,7 @@ let%expect_test "load a directory" =
     ofac-sdn 2026-10-15 18 7955f590
     ofac-sdn 2026-10-15 5 92782392
     uk-ofsi 2026-10-15 12 361141ba
+    uk-sanctions-list 2026-10-15 4 c464ba9c
     |}]
 ;;
 
@@ -420,7 +478,7 @@ let%expect_test "bundled fixtures equal the fixtures directory" =
      (files
       (custom/internal-pep.sexp eu/eu_consolidated.xml
        ofac-advanced/sdn_advanced.xml ofac/VERSION ofac/alt.csv ofac/sdn.csv
-       uk/ConList.csv))
+       uk-sanctions-list/UK-Sanctions-List.xml uk/ConList.csv))
      (lists true))
     (((list Ofac_sdn) (version unknown) (published ()) (entries 18)
       (digest 7955f59098a1c078611678b23f814358)))

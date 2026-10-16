@@ -123,7 +123,7 @@ let%expect_test "no case for a clear screening" =
     {|
     (Error
      ("no case for a clear screening"
-      (screening f160fdc7f1dbea3db4f9cad23b7332cc)))
+      (screening 074ab232f3c4274953e59d004fc560f5)))
     |}]
 ;;
 
