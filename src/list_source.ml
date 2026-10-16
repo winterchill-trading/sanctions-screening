@@ -6,6 +6,7 @@ module Format = struct
     | Ofac_advanced_xml
     | Eu_xml
     | Uk_ofsi_csv
+    | Uk_sanctions_list_xml
     | Fixture
   [@@deriving sexp, compare, equal, enumerate]
 end
@@ -21,6 +22,8 @@ let detect ~filename ~contents : Format.t option =
     then Some Ofac_advanced_xml
     else if String.is_substring head ~substring:"eu.europa.ec/fpi/fsd/export"
     then Some Eu_xml
+    else if String.is_substring head ~substring:"<Designations"
+    then Some Uk_sanctions_list_xml
     else None
   else if String.is_suffix base ~suffix:".csv"
   then
@@ -40,6 +43,7 @@ let parse (format : Format.t) ?(version = "unknown") ?alt contents =
   | Ofac_advanced_xml -> Ofac_xml.parse contents
   | Eu_xml -> Eu_xml.parse contents
   | Uk_ofsi_csv -> Uk_csv.parse contents
+  | Uk_sanctions_list_xml -> Uk_xml.parse contents
   | Fixture -> Fixture.parse contents
 ;;
 
@@ -65,13 +69,16 @@ let first_line contents =
    parses an OFAC advanced XML file (from a channel, for files on disk),
    [sibling path name] finds a file of that (lower-case) name in the same directory, and
    [undated path] versions an OFAC CSV that has no VERSION file. *)
-let load ~paths ~head ~read ~ofac_xml ~sibling ~undated =
+let load ~paths ~head ~read ~stream ~sibling ~undated =
   Or_error.try_with_join (fun () ->
     paths
     |> List.filter_map ~f:(fun path ->
       match detect ~filename:path ~contents:(head path) with
       | None -> None
-      | Some Ofac_advanced_xml -> Some (ofac_xml path |> Or_error.tag ~tag:path)
+      | Some Ofac_advanced_xml ->
+        Some (stream Ofac_xml.of_channel Ofac_xml.parse path |> Or_error.tag ~tag:path)
+      | Some Uk_sanctions_list_xml ->
+        Some (stream Uk_xml.of_channel Uk_xml.parse path |> Or_error.tag ~tag:path)
       | Some Ofac_sdn_csv ->
         let alt = Option.map (sibling path "alt.csv") ~f:read in
         let version =
@@ -121,8 +128,8 @@ let load_dir dir =
           let n = In_channel.input ic ~buf ~pos:0 ~len:4096 in
           Bytes.To_string.sub buf ~pos:0 ~len:n))
       ~read:read_file
-      ~ofac_xml:(fun path ->
-        In_channel.with_file path ~binary:true ~f:Ofac_xml.of_channel)
+      ~stream:(fun of_channel _ path ->
+        In_channel.with_file path ~binary:true ~f:of_channel)
       ~sibling
       ~undated)
 ;;
@@ -149,7 +156,7 @@ let load_files files =
       ~paths:(List.sort (Map.keys by_path) ~compare:compare_paths)
       ~head:(Map.find_exn by_path)
       ~read:(Map.find_exn by_path)
-      ~ofac_xml:(fun path -> Ofac_xml.parse (Map.find_exn by_path path))
+      ~stream:(fun _ parse path -> parse (Map.find_exn by_path path))
       ~sibling
       ~undated:(fun _ -> "unknown")
 ;;

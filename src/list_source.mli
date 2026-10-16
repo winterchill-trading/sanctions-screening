@@ -5,7 +5,8 @@
     - {!Ofac_csv}: OFAC SDN legacy CSV ([SDN.CSV] and [ALT.CSV]).
     - {!Ofac_xml}: OFAC SDN advanced XML ([SDN_ADVANCED.XML]).
     - {!Eu_xml}: EU consolidated list XML (FSF 1.1).
-    - {!Uk_csv}: UK consolidated list CSV as OFSI published it.
+    - {!Uk_csv}: UK consolidated list CSV as OFSI published it (closed in January 2026).
+    - {!Uk_xml}: the UK Sanctions List XML, its successor.
     - {!Fixture}: lists kept as s-expressions (internal, PEP, tests).
 
     Nothing here downloads; [scripts/fetch-lists.sh] fetches the public files. *)
@@ -18,14 +19,15 @@ module Format : sig
     | Ofac_advanced_xml
     | Eu_xml
     | Uk_ofsi_csv
+    | Uk_sanctions_list_xml
     | Fixture
   [@@deriving sexp, compare, equal, enumerate]
 end
 
 (** Recognises a file by its name and first bytes: [*.sexp] is a fixture; XML in the OFAC
-    advanced namespace or the EU export namespace; CSV starting ["Last Updated"] (UK); a
-    file named [sdn.csv] (any case) is OFAC. [None] for anything else (including
-    [alt.csv], read together with [sdn.csv]). *)
+    advanced namespace, the EU export namespace, or with a [Designations] root (UK
+    Sanctions List); CSV starting ["Last Updated"] (UK); a file named [sdn.csv] (any case)
+    is OFAC. [None] for anything else (including [alt.csv], read together with [sdn.csv]). *)
 val detect : filename:string -> contents:string -> Format.t option
 
 (** Parses one file. OFAC CSV takes the [alt.csv] contents as [?alt] and has no date
