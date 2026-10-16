@@ -36,3 +36,18 @@ val parse : Format.t -> ?version:string -> ?alt:string -> string -> Snapshot.t O
     to [sdn.csv] is read with it, and the version is the first line of a [VERSION] file in
     that directory, or the file's modification date. *)
 val load_dir : string -> Snapshot.t list Or_error.t
+
+(** The same as {!load_dir} over files held in memory, given as (path, contents) with
+    ['/'] separating directories (e.g. [("ofac/sdn.csv", ...)]): for lists fetched over
+    HTTP or read from object storage, with no temporary files. An OFAC CSV without a
+    [VERSION] file next to it gets version ["unknown"]. Fails on a path given twice. *)
+val load_files : (string * string) list -> Snapshot.t list Or_error.t
+
+(** The fixture lists shipped with the library (the files under [fixtures/] in the source
+    tree, embedded at build time): small invented excerpts in every supported format, for
+    tests, demos and offline mode in applications. The package also installs them under
+    [share/sanctions-screening/fixtures/]. Never use them to screen real customers. *)
+val load_fixtures : unit -> Snapshot.t list Or_error.t
+
+(** The embedded fixture files themselves, (path below [fixtures/], contents). *)
+val fixture_files : unit -> (string * string) list

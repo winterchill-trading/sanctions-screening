@@ -54,40 +54,77 @@ let rec files dir =
     | `No | `Unknown -> [ path ])
 ;;
 
-let find_sibling path name =
-  let dir = Filename.dirname path in
-  Sys_unix.readdir dir
-  |> Array.to_list
-  |> List.find ~f:(fun f -> String.equal (String.lowercase f) name)
-  |> Option.map ~f:(Filename.concat dir)
+let first_line contents =
+  match String.split_lines contents with
+  | first :: _ -> String.strip first
+  | [] -> "unknown"
 ;;
 
-let ofac_version path =
-  match find_sibling path "version" with
-  | Some v ->
-    (match In_channel.read_lines v with
-     | first :: _ -> String.strip first
-     | [] -> "unknown")
-  | None ->
+(* The shared core of [load_dir] and [load_files]: [read] gives a file's contents,
+   [sibling path name] finds a file of that (lower-case) name in the same directory, and
+   [undated path] versions an OFAC CSV that has no VERSION file. *)
+let load ~paths ~read ~sibling ~undated =
+  Or_error.try_with_join (fun () ->
+    paths
+    |> List.filter_map ~f:(fun path ->
+      let contents = read path in
+      match detect ~filename:path ~contents with
+      | None -> None
+      | Some Ofac_sdn_csv ->
+        let alt = Option.map (sibling path "alt.csv") ~f:read in
+        let version =
+          match sibling path "version" with
+          | Some v -> first_line (read v)
+          | None -> undated path
+        in
+        Some (parse Ofac_sdn_csv ~version ?alt contents |> Or_error.tag ~tag:path)
+      | Some format -> Some (parse format contents |> Or_error.tag ~tag:path))
+    |> Or_error.combine_errors)
+;;
+
+let load_dir dir =
+  let sibling path name =
+    let dir = Filename.dirname path in
+    Sys_unix.readdir dir
+    |> Array.to_list
+    |> List.find ~f:(fun f -> String.equal (String.lowercase f) name)
+    |> Option.map ~f:(Filename.concat dir)
+  in
+  let undated path =
     let mtime = (Core_unix.stat path).st_mtime in
     Date.to_string
       (Date.of_time
          (Time_float.of_span_since_epoch (Time_float.Span.of_sec mtime))
          ~zone:Time_float.Zone.utc)
+  in
+  Or_error.try_with_join (fun () ->
+    load ~paths:(files dir) ~read:In_channel.read_all ~sibling ~undated)
 ;;
 
-let load_dir dir =
-  Or_error.try_with_join (fun () ->
-    files dir
-    |> List.filter_map ~f:(fun path ->
-      let contents = In_channel.read_all path in
-      match detect ~filename:path ~contents with
-      | None -> None
-      | Some Ofac_sdn_csv ->
-        let alt = Option.map (find_sibling path "alt.csv") ~f:In_channel.read_all in
-        Some
-          (parse Ofac_sdn_csv ~version:(ofac_version path) ?alt contents
-           |> Or_error.tag ~tag:path)
-      | Some format -> Some (parse format contents |> Or_error.tag ~tag:path))
-    |> Or_error.combine_errors)
+(* Path order as [load_dir] walks a tree: component by component. *)
+let compare_paths a b =
+  List.compare String.compare (String.split a ~on:'/') (String.split b ~on:'/')
 ;;
+
+let load_files files =
+  match
+    String.Map.of_alist (List.map files ~f:(fun (path, contents) -> path, contents))
+  with
+  | `Duplicate_key path -> Or_error.error_s [%message "file given twice" path]
+  | `Ok by_path ->
+    let sibling path name =
+      let dir = Filename.dirname path in
+      Map.keys by_path
+      |> List.find ~f:(fun p ->
+        String.equal (Filename.dirname p) dir
+        && String.equal (String.lowercase (Filename.basename p)) name)
+    in
+    load
+      ~paths:(List.sort (Map.keys by_path) ~compare:compare_paths)
+      ~read:(Map.find_exn by_path)
+      ~sibling
+      ~undated:(fun _ -> "unknown")
+;;
+
+let fixture_files () = Bundled_fixtures.files
+let load_fixtures () = load_files Bundled_fixtures.files
