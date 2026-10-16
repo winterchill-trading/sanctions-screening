@@ -59,3 +59,62 @@ let%expect_test "country names" =
     (Atlantis ())
     |}]
 ;;
+
+(* Reading a channel a chunk at a time must give the trees reading the whole string gives,
+   wherever the chunk boundaries fall (inside names, attribute values with ">", entities,
+   comments, CDATA). *)
+let%expect_test "XML from a channel equals XML from a string, at any chunk size" =
+  let rec show (t : Xml.t) =
+    Sexp.List
+      (Sexp.Atom t.name
+       :: [%sexp (t.attrs : (string * string) list)]
+       :: List.map t.children ~f:(function
+         | Text s -> Sexp.Atom s
+         | Element e -> show e))
+  in
+  let tricky =
+    {|<?xml version="1.0"?><!-- a > comment --><root><a x="1 > 0" y='q"q'>t&amp;u &#x41;</a><![CDATA[<raw>]]><b/><c k="v" /></root>|}
+  in
+  let file = Filename_unix.temp_file "xml" ".xml" in
+  let check ~depth contents =
+    Out_channel.write_all file ~data:contents;
+    let collect iter =
+      let out = ref [] in
+      ok_exn (iter ~f:(fun el -> out := show el :: !out));
+      List.rev !out
+    in
+    let whole = collect (Xml.iter_elements contents ~depth) in
+    List.for_all [ 1; 2; 3; 7; 64; 4096 ] ~f:(fun chunk_size ->
+      let chunked =
+        In_channel.with_file file ~f:(fun ic ->
+          collect (Xml.iter_elements_channel ~chunk_size ic ~depth))
+      in
+      [%equal: Sexp.t list] whole chunked)
+  in
+  let fixture path = In_channel.read_all ("../fixtures/" ^ path) in
+  let ofac = fixture "ofac-advanced/sdn_advanced.xml" in
+  print_s
+    [%message
+      ""
+        ~tricky:(List.map [ 0; 1; 2 ] ~f:(fun depth -> check ~depth tricky) : bool list)
+        ~ofac:(check ~depth:2 ofac : bool)
+        ~eu:(check ~depth:1 (fixture "eu/eu_consolidated.xml") : bool)
+        ~ofac_snapshot:
+          (Out_channel.write_all file ~data:ofac;
+           [%equal: Entry.t list]
+             (Ofac_xml.parse ofac |> ok_exn).entries
+             (In_channel.with_file file ~f:Ofac_xml.of_channel |> ok_exn).entries
+           : bool)
+        ~truncated:
+          (Out_channel.write_all file ~data:(String.prefix tricky 60);
+           In_channel.with_file file ~f:(fun ic ->
+             Xml.iter_elements_channel ~chunk_size:5 ic ~depth:1 ~f:ignore)
+           |> Result.is_error
+           : bool)];
+  Core_unix.unlink file;
+  [%expect
+    {|
+    ((tricky (true true true)) (ofac true) (eu true) (ofac_snapshot true)
+     (truncated true))
+    |}]
+;;
