@@ -29,6 +29,11 @@ open Sanctions_screening
 
 let lists = Lists.create (List_source.load_dir "lists" |> ok_exn) |> ok_exn
 
+(* Or, with no files at all: the bundled invented fixture lists (tests, demos, offline
+   mode), or lists already in memory. *)
+let demo_lists = Lists.create (List_source.load_fixtures () |> ok_exn) |> ok_exn
+let fetched_lists files = List_source.load_files files (* (path, contents) list *)
+
 let decision =
   let subject =
     Subject.create
@@ -63,20 +68,32 @@ sanctions-screening rescreen subjects.sexp -before lists-old/ -after lists/
 | OFAC SDN, legacy CSV | `Ofac_csv` | `sdn.csv`, `alt.csv`, optional `VERSION` | names (`SURNAME, Given` stored as `Given SURNAME`), aliases (aka, fka), weak aliases from quoted remarks, DOB/nationality/citizenship from remarks, programmes |
 | OFAC SDN, advanced XML | `Ofac_xml` | `SDN_ADVANCED.XML` | party type, every documented name in every script (last names last), primary/aka/fka/low-quality, Birthdate and Nationality/Citizenship features through `Locations`, programmes and listing date from `SanctionsEntries`; version from `DateOfIssue` |
 | EU consolidated list, XML (FSF 1.1) | `Eu_xml` | `*.xml` in the FSF namespace | `nameAlias` (first is primary, `strong="false"` weak), `citizenship`, `birthdate` (day, year, circa), `regulation` programme and date; version from `generationDate` |
+| UK Sanctions List (FCDO), XML | `Uk_xml` | `UK-Sanctions-List.xml` (root `Designations`) | `UniqueID`, party type, `Name1` to `Name6` with name type (primary, variation, alias) and alias strength, non-Latin names, `DOB` with `dd`/`mm` placeholders or a bare year, nationality names, regime, `DateDesignated`; version from `DateGenerated` |
 | UK consolidated list as OFSI published it, CSV | `Uk_csv` | `ConList.csv` | rows grouped by `Group ID`, Name 1 to 6, alias type and quality, non-Latin names, `dd/mm/yyyy` dates with `00` parts, numbered nationalities, regime, listing date |
 | Internal and test lists | `Fixture` | `*.sexp` | the normalised entry, by hand |
 
 `List_source.load_dir` detects files by name and first bytes and returns one `Snapshot.t`
-per file: a `List_version.t` (list, version, entry count, MD5 digest of the entries) and
+per file (`List_source.load_files` does the same for (path, contents) pairs held in
+memory, e.g. fetched over HTTP): a `List_version.t` (list, version, entry count, MD5 digest of the entries) and
 the entries. Every entry becomes an `Entry.t`: list, id, version, party type
 (person, entity, vessel, aircraft), names with their kind, dates of birth (day, month,
 year or range), ISO nationalities, programmes, listing date.
 
 Two OFAC files in different formats carry the same ids; load one of them per directory
 (`Lists.create` refuses an entry that appears twice). The UK OFSI consolidated list
-closed on 28 January 2026 and the UK Sanctions List replaced it; the parser serves
-archived files, and a parser for the new list's format is a known gap. `fixtures/` holds
-small sanitised excerpts in each format; every party in them is invented.
+closed on 28 January 2026 and the UK Sanctions List replaced it as the only UK source;
+`Uk_csv` serves archived OFSI files. The UK Sanctions List is published by the FCDO on
+GOV.UK ("The UK Sanctions List", static URL
+`https://sanctionslist.fcdo.gov.uk/docs/UK-Sanctions-List.xml`, schema 4.33, format
+guide "Format guide for the UK Sanctions List"); the same data also comes as CSV, ODS
+and other formats, of which the XML is read. Both UK files list the same people under
+different ids, so load one of them. On the live file of 15 October 2026 `Uk_xml` reads
+6 408 designations (4 058 people, 1 667 entities, 683 ships, 19 652 names) in under a
+second with a 71 MB peak.
+
+`fixtures/` holds small sanitised excerpts in each format; every party in them is
+invented. They are embedded in the library (`List_source.load_fixtures ()`) and installed
+under `share/sanctions-screening/fixtures/`.
 
 ## Normalisation and disguised names
 
@@ -154,7 +171,7 @@ a neutral `Under_review`, so nothing about alerts reaches the customer (tipping-
 and of its separator-free form, plus consonant-skeleton trigrams. A query counts the
 trigrams each name shares and scores only names whose Dice overlap reaches
 `Policy.prefilter` (200 per mille). On the fixture probes (every list name, truncated,
-reversed, and every disguise in `test/adversarial.ml`) the prefilter loses none of the 667
+reversed, and every disguise in `test/adversarial.ml`) the prefilter loses none of the 729
 names a full scan scores at 850 or more (`test/test_screening.ml`).
 
 ## Screening, rescreening and cases
@@ -183,7 +200,16 @@ idempotency key and expected version, so two analysts cannot act on the same sta
 open case ids. `Store_memory` serves tests and offline mode; `Store_pg`
 (`sanctions-screening-pg`) keeps the same data in PostgreSQL (tables prefixed
 `sanctions_`, schema in `migrations/`, embedded and applied by `Store_pg.connect`, bodies
-as bin_prot of the `Stable` types). `Store_conformance` runs one scenario list against
+as bin_prot of the `Stable` types).
+
+The library owns one PostgreSQL schema, `sanctions_screening` by default
+(`Store_pg.connect ~schema`): it creates the schema, and its tables and its own
+`schema_migrations` table live inside it. Nothing is written outside it, so the host
+application's migrations table and other libraries (transaction-monitoring keeps its own
+`transaction_monitoring.schema_migrations`) never clash, though all start at version 1.
+A database set up by 0.1.0 (tables and the bookkeeping row in the search path, usually
+`public`) is adopted on connect: the six tables move into the schema and migration 1 is
+recorded there; the old row in the shared table may then be deleted by hand. `Store_conformance` runs one scenario list against
 any store; the tests run it on both and require the same transcript. No SQL appears
 outside `pg/store_pg.ml` and `migrations/`.
 
@@ -212,7 +238,10 @@ let onboard (module S : Store.S with type t = 'a) store ~lists ~customer ~now =
 
 `Hit.to_kyc` and `Screening.Context.to_kyc` give kyc-core's `Screening.Hit.t` and
 `Screen_reason.t`, so `Kyc_core.Screening.create` can record the run and block approval
-until every hit is discounted.
+until every hit is discounted. The kyc-core hit's `entry_id` is the list-qualified
+`Hit.entry_key` (`ofac-sdn:9001`), because kyc-core keys hits by entry id within a
+screening and ids repeat across lists; the list's own id stays in `Hit.t.entry_id` and
+`Hit.split_entry_key` recovers it.
 
 Payee creation and payments: screen the counterparty name (and the account's or
 address country) with `Policy.payments`, for SEPA with the end-to-end id as reference:
@@ -270,6 +299,21 @@ row was measured with `-O3`):
 | load and index the real lists | 0.5 s and 0.9 s | |
 
 `SANCTIONS_BENCH_LISTS=<dir> bench.exe` runs the same benchmark against fetched lists.
+
+Peak memory (maximum resident set size of `sanctions-screening stats -lists <dir>`: load
+and index; release build, Apple M-series laptop, lists of 15 October 2026):
+
+| Lists | 0.1.0 | now |
+| --- | --- | --- |
+| OFAC advanced XML (128 MB) | 883 MB | 158 MB |
+| OFAC legacy CSV (7 MB) | 126 MB | 114 MB |
+| OFAC XML, EU XML, UK OFSI CSV | 916 MB | 329 MB |
+| UK Sanctions List XML (22 MB) | | 71 MB |
+
+The OFAC XML is read from disk a megabyte at a time (`Xml.iter_elements_channel`), each
+party is reduced to the fields an entry uses as soon as it is read, with repeated ids
+shared, and other files are read in one allocation of their size (`In_channel.read_all`
+grows a buffer and held about three times the file at its peak).
 The comparison primitives, the scorer, the token alignment and the UTF-8 decoder carry
 `[@zero_alloc]` in their interfaces and the compiler checks them;
 `test/test_match.ml` pins 0 words per `Match.score` call.
@@ -287,8 +331,12 @@ a cram walk of the command. No test downloads anything.
 
 ## Known gaps
 
-- The UK Sanctions List (the successor of the OFSI list) and the UN consolidated list
-  have no parser yet; `List_id` already names them.
+- The UN consolidated list has no parser yet; `List_id` already names it.
+- The prefilter can miss a cross-script match: with an Arabic-script list name, a
+  truncated or reversed Latin probe (`Fareed QUDAI`) scored 863 to 900 on the consonant
+  skeleton while sharing too few trigrams to pass the prefilter. Found while writing the
+  UK Sanctions List fixture; the committed fixtures have no such pair, so the prefilter
+  check reads 0 missed.
 - Double Metaphone is not implemented; Soundex is the phonetic key, capped so it cannot
   raise a hit on its own above 880.
 - Greek is transliterated letter by letter except ου; Arabic short vowels are missing by
