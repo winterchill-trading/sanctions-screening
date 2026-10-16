@@ -1,0 +1,14 @@
+; The fixture lists are also embedded in the library (List_source.load_fixtures); the
+; installed copies are for tools that read a directory (sanctions-screening -lists).
+
+(install
+ (section share)
+ (package sanctions-screening)
+ (files
+  (custom/internal-pep.sexp as fixtures/custom/internal-pep.sexp)
+  (eu/eu_consolidated.xml as fixtures/eu/eu_consolidated.xml)
+  (ofac-advanced/sdn_advanced.xml as fixtures/ofac-advanced/sdn_advanced.xml)
+  (ofac/VERSION as fixtures/ofac/VERSION)
+  (ofac/alt.csv as fixtures/ofac/alt.csv)
+  (ofac/sdn.csv as fixtures/ofac/sdn.csv)
+  (uk/ConList.csv as fixtures/uk/ConList.csv)))
