@@ -24,6 +24,32 @@ let dob_of_period period =
   | _ -> Some (Year y0)
 ;;
 
+(* What one DistinctParty contributes, reduced while streaming: only the fields the entry
+   needs, still as the document's ids (reference values and locations are resolved after
+   the pass, so the order of the sections does not matter). Holding these instead of each
+   party's element tree took the peak heap of the 130 MB file from about 880 MB to the
+   numbers in the README. *)
+type raw_name =
+  { primary : bool
+  ; low_quality : bool
+  ; alias_type : string
+  ; parts : (string * string) list (* name part group id, text *)
+  }
+
+type raw_feature =
+  { feature_type : string
+  ; dobs : Dob.t list
+  ; locations : string list
+  }
+
+type raw_party =
+  { profile_id : string
+  ; subtype : string
+  ; groups : (string * string) list (* name part group id, name part type id *)
+  ; names : raw_name list (* one per documented name, in document order *)
+  ; features : raw_feature list
+  }
+
 type state =
   { mutable version : string
   ; refs : (string, (string * string) list) Hashtbl.t
@@ -31,10 +57,57 @@ type state =
   ; location_country : (string, string) Hashtbl.t
   ; programmes : (string, string list) Hashtbl.t
   ; listed_on : (string, Date.t) Hashtbl.t
-  ; parties : Xml.t Queue.t
+  ; parties : raw_party Queue.t
+  ; interned : (string, string) Hashtbl.t
   }
 
-let parse text =
+(* Type and group ids repeat on every party (a few hundred distinct values over tens of
+   thousands of uses); one shared copy of each keeps them from multiplying. *)
+let intern st s =
+  match Hashtbl.find st.interned s with
+  | Some s -> s
+  | None ->
+    Hashtbl.set st.interned ~key:s ~data:s;
+    s
+;;
+
+let raw_party st party =
+  let%map.Option profile = Xml.child party "Profile" in
+  let id el name = intern st (Xml.attr_or_empty el name) in
+  let names =
+    Xml.descendants profile "Alias"
+    |> List.concat_map ~f:(fun alias ->
+      let primary = String.equal (Xml.attr_or_empty alias "Primary") "true"
+      and low_quality = String.equal (Xml.attr_or_empty alias "LowQuality") "true"
+      and alias_type = id alias "AliasTypeID" in
+      Xml.children alias "DocumentedName"
+      |> List.map ~f:(fun dn ->
+        { primary
+        ; low_quality
+        ; alias_type
+        ; parts =
+            List.map (Xml.descendants dn "NamePartValue") ~f:(fun p ->
+              id p "NamePartGroupID", Xml.text p)
+        }))
+  in
+  { profile_id = Xml.attr_or_empty profile "ID"
+  ; subtype = id profile "PartySubTypeID"
+  ; groups =
+      List.map (Xml.descendants profile "NamePartGroup") ~f:(fun g ->
+        id g "ID", id g "NamePartTypeID")
+  ; names
+  ; features =
+      List.map (Xml.children profile "Feature") ~f:(fun f ->
+        { feature_type = id f "FeatureTypeID"
+        ; dobs = List.filter_map (Xml.descendants f "DatePeriod") ~f:dob_of_period
+        ; locations =
+            List.map (Xml.descendants f "VersionLocation") ~f:(fun vl ->
+              id vl "LocationID")
+        })
+  }
+;;
+
+let parse_elements iter =
   let st =
     { version = "unknown"
     ; refs = String.Table.create ()
@@ -42,12 +115,13 @@ let parse text =
     ; programmes = String.Table.create ()
     ; listed_on = String.Table.create ()
     ; parties = Queue.create ()
+    ; interned = String.Table.create ()
     }
   in
   let open Or_error.Let_syntax in
   let issue = Array.create ~len:3 None in
   let%bind () =
-    Xml.iter_elements text ~depth:2 ~f:(fun el ->
+    iter ~f:(fun (el : Xml.t) ->
       match el.name with
       (* At this depth only DateOfIssue has Year, Month and Day children; reading them
          here keeps the parse to one pass that never builds a whole section. *)
@@ -58,9 +132,9 @@ let parse text =
         Option.iter (Xml.child el "LocationCountry") ~f:(fun c ->
           Hashtbl.set
             st.location_country
-            ~key:(Xml.attr_or_empty el "ID")
-            ~data:(Xml.attr_or_empty c "CountryID"))
-      | "DistinctParty" -> Queue.enqueue st.parties el
+            ~key:(intern st (Xml.attr_or_empty el "ID"))
+            ~data:(intern st (Xml.attr_or_empty c "CountryID")))
+      | "DistinctParty" -> Option.iter (raw_party st el) ~f:(Queue.enqueue st.parties)
       | "SanctionsEntry" ->
         let profile = Xml.attr_or_empty el "ProfileID" in
         Hashtbl.set st.programmes ~key:profile ~data:[];
@@ -122,8 +196,8 @@ let parse text =
   and nationality =
     Set.union (feature_named "Nationality Country") (feature_named "Citizenship Country")
   in
-  let party_type profile : Party_type.t =
-    match Map.find subtypes (Xml.attr_or_empty profile "PartySubTypeID") with
+  let party_type subtype : Party_type.t =
+    match Map.find subtypes subtype with
     | None -> Unknown
     | Some v ->
       let type_id, sub = String.lsplit2_exn v ~on:'\000' in
@@ -135,64 +209,48 @@ let parse text =
   in
   let entries =
     Queue.to_list st.parties
-    |> List.filter_map ~f:(fun party ->
-      let%map.Option profile = Xml.child party "Profile" in
-      let profile_id = Xml.attr_or_empty profile "ID" in
-      let party = party_type profile in
+    |> List.map ~f:(fun (raw : raw_party) ->
+      let party = party_type raw.subtype in
       let last_name_groups =
-        Xml.descendants profile "NamePartGroup"
-        |> List.filter ~f:(fun g ->
-          [%equal: string option]
-            (Map.find name_part_types (Xml.attr_or_empty g "NamePartTypeID"))
-            (Some "Last Name"))
-        |> List.map ~f:(fun g -> Xml.attr_or_empty g "ID")
+        List.filter_map raw.groups ~f:(fun (group, part_type) ->
+          match Map.find name_part_types part_type with
+          | Some "Last Name" -> Some group
+          | _ -> None)
         |> String.Set.of_list
       in
       let names =
-        Xml.descendants profile "Alias"
-        |> List.concat_map ~f:(fun alias ->
+        List.map raw.names ~f:(fun n ->
           let kind : Entry.Name.Kind.t =
-            if String.equal (Xml.attr_or_empty alias "Primary") "true"
+            if n.primary
             then Primary
-            else if String.equal (Xml.attr_or_empty alias "LowQuality") "true"
+            else if n.low_quality
             then Weak_alias
             else (
-              match Map.find alias_types (Xml.attr_or_empty alias "AliasTypeID") with
+              match Map.find alias_types n.alias_type with
               | Some "F.K.A." -> Former
               | _ -> Alias)
           in
-          Xml.children alias "DocumentedName"
-          |> List.map ~f:(fun dn ->
-            let parts = Xml.descendants dn "NamePartValue" in
-            let last, rest =
-              List.partition_tf parts ~f:(fun p ->
-                Set.mem last_name_groups (Xml.attr_or_empty p "NamePartGroupID"))
-            in
-            let name = List.map (rest @ last) ~f:Xml.text |> String.concat ~sep:" " in
-            { Entry.Name.name; kind }))
+          let last, rest =
+            List.partition_tf n.parts ~f:(fun (group, _) ->
+              Set.mem last_name_groups group)
+          in
+          let name = List.map (rest @ last) ~f:snd |> String.concat ~sep:" " in
+          { Entry.Name.name; kind })
       in
-      let feature_list = Xml.children profile "Feature" in
       let of_type ids =
-        List.filter feature_list ~f:(fun f ->
-          Set.mem ids (Xml.attr_or_empty f "FeatureTypeID"))
+        List.filter raw.features ~f:(fun f -> Set.mem ids f.feature_type)
       in
-      let dobs =
-        of_type birth
-        |> List.concat_map ~f:(fun f -> Xml.descendants f "DatePeriod")
-        |> List.filter_map ~f:dob_of_period
-      in
+      let dobs = of_type birth |> List.concat_map ~f:(fun f -> f.dobs) in
       let nationalities =
         of_type nationality
-        |> List.concat_map ~f:(fun f -> Xml.descendants f "VersionLocation")
-        |> List.filter_map ~f:(fun vl ->
-          let%bind.Option country =
-            Hashtbl.find st.location_country (Xml.attr_or_empty vl "LocationID")
-          in
+        |> List.concat_map ~f:(fun f -> f.locations)
+        |> List.filter_map ~f:(fun location ->
+          let%bind.Option country = Hashtbl.find st.location_country location in
           Map.find countries country)
         |> List.filter ~f:(Fn.non String.is_empty)
       in
       let programmes =
-        Option.value (Hashtbl.find st.programmes profile_id) ~default:[]
+        Option.value (Hashtbl.find st.programmes raw.profile_id) ~default:[]
         |> List.filter_map ~f:(fun v ->
           let type_id, comment = String.lsplit2_exn v ~on:'\000' in
           match Map.find sanction_types type_id with
@@ -201,17 +259,20 @@ let parse text =
       in
       Entry.create
         ~list:Ofac_sdn
-        ~id:profile_id
+        ~id:raw.profile_id
         ~version:st.version
         ~party
         ~names
         ~dobs
         ~nationalities
         ~programmes
-        ?listed_on:(Hashtbl.find st.listed_on profile_id)
+        ?listed_on:(Hashtbl.find st.listed_on raw.profile_id)
         ())
     |> Or_error.combine_errors
   in
   let%bind entries in
   Snapshot.create ~list:Ofac_sdn ~version:st.version entries
 ;;
+
+let parse text = parse_elements (Xml.iter_elements text ~depth:2)
+let of_channel ic = parse_elements (Xml.iter_elements_channel ic ~depth:2)
