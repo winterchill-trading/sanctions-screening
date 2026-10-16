@@ -4,3 +4,12 @@
  (libraries core core_unix core_unix.sys_unix async_kernel kyc-core)
  (preprocess
   (pps ppx_jane)))
+
+(rule
+ (targets bundled_fixtures.ml)
+ (deps
+  (glob_files_rec %{project_root}/fixtures/**))
+ (action
+  (with-stdout-to
+   %{targets}
+   (run gen/gen_fixtures.exe %{deps}))))
