@@ -383,3 +383,47 @@ let%expect_test "malformed input fails with a reason" =
     (Error "empty UK list file")
     |}]
 ;;
+
+(* The consumer case: no fixtures directory next to the binary. The embedded lists are the
+   committed files, parsed the same way, and [load_files] reads lists held in memory. *)
+let%expect_test "bundled fixtures equal the fixtures directory" =
+  let from_dir = List_source.load_dir "../fixtures" |> ok_exn in
+  let bundled = List_source.load_fixtures () |> ok_exn in
+  let versions l = List.map l ~f:(fun (s : Snapshot.t) -> s.version) in
+  print_s
+    [%message
+      ""
+        ~equal:
+          ([%equal: Entry.t list list]
+             (List.map from_dir ~f:(fun s -> s.entries))
+             (List.map bundled ~f:(fun s -> s.entries))
+           : bool)
+        ~same_versions:
+          ([%equal: List_version.t list] (versions from_dir) (versions bundled) : bool)
+        ~files:(List.map (List_source.fixture_files ()) ~f:fst : string list)
+        ~lists:(Lists.create bundled |> Result.is_ok : bool)];
+  let without_version =
+    List_source.fixture_files ()
+    |> List.filter ~f:(fun (p, _) -> String.is_prefix p ~prefix:"ofac/")
+    |> List.filter ~f:(fun (p, _) -> not (String.equal p "ofac/VERSION"))
+    |> List_source.load_files
+    |> ok_exn
+  in
+  print_s [%sexp (versions without_version : List_version.t list)];
+  print_s
+    [%sexp
+      (List_source.load_files [ "a.sexp", "()"; "a.sexp", "()" ] |> Result.is_error
+       : bool)];
+  [%expect
+    {|
+    ((equal true) (same_versions true)
+     (files
+      (custom/internal-pep.sexp eu/eu_consolidated.xml
+       ofac-advanced/sdn_advanced.xml ofac/VERSION ofac/alt.csv ofac/sdn.csv
+       uk/ConList.csv))
+     (lists true))
+    (((list Ofac_sdn) (version unknown) (published ()) (entries 18)
+      (digest 7955f59098a1c078611678b23f814358)))
+    true
+    |}]
+;;
