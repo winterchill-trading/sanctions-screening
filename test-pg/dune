@@ -2,6 +2,8 @@
  (name sanctions_screening_pg_test)
  (package sanctions-screening-pg)
  (inline_tests
+  (deps
+   (glob_files ../migrations/*.sql))
   (flags
    (:standard -source-tree-root .)))
  (libraries
